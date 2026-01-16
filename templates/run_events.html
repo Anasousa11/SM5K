@@ -2,6 +2,21 @@
 
 {% block content %}
 <h2>Upcoming Runs</h2>
+<form method="get">
+    <label>Pace Group:</label>
+    <select name="pace">
+        <option value="">All</option>
+        <option value="slow" {% if pace_filter == 'slow' %}selected{% endif %}>Slow</option>
+        <option value="medium" {% if pace_filter == 'medium' %}selected{% endif %}>Medium</option>
+        <option value="fast" {% if pace_filter == 'fast' %}selected{% endif %}>Fast</option>
+        <option value="mixed" {% if pace_filter == 'mixed' %}selected{% endif %}>Mixed</option>
+    </select>
+    <label>Min Distance (km):</label>
+    <input type="number" name="min_distance" step="0.1" value="{{ min_distance }}">
+    <label>Max Distance (km):</label>
+    <input type="number" name="max_distance" step="0.1" value="{{ max_distance }}">
+    <button type="submit">Filter</button>
+</form>
 {% for event in events %}
     <div>
         <h3><a href="{% url 'run_event_detail' event.id %}">{{ event.title }}</a></h3>

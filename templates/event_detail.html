@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ event.title }}</h2>
+<p>{{ event.description }}</p>
+<p>Date: {{ event.date }}</p>
+<p>Time: {{ event.start_time }} - {{ event.end_time }}</p>
+<p>Location: {{ event.location }}</p>
+<p>Type: {{ event.get_event_type_display }}</p>
+{% if event.distance_km %}
+    <p>Distance: {{ event.distance_km }} km</p>
+{% endif %}
+{% if event.target_reps %}
+    <p>Target Reps: {{ event.target_reps }}</p>
+{% endif %}
+<p>Capacity: {{ event.capacity }}</p>
+<p>Registrations: {{ event.registrations_count }}</p>
+{% if user.is_authenticated %}
+    {% if registration %}
+        {% if registration.status == 'booked' %}
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" name="cancel">Cancel Registration</button>
+            </form>
+        {% else %}
+            <p>You cancelled this registration.</p>
+        {% endif %}
+    {% else %}
+        {% if user.client_profile.has_active_membership %}
+            {% if not event.is_full and not event.is_past %}
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="join">Join Event</button>
+                </form>
+            {% else %}
+                <p>Cannot join this event.</p>
+            {% endif %}
+        {% else %}
+            <p>You need an active membership to join events.</p>
+        {% endif %}
+    {% endif %}
+{% endif %}
+{% endblock %}

@@ -4,19 +4,39 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.models import User
-from .models import MembershipPlan, Membership, RunEvent, RunRegistration, MemberProfile
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from .models import MembershipPlan, Membership, Event, EventRegistration, ClientProfile, TrainerProfile
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('dashboard')
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/register.html', {'form': form})
 
 def home(request):
     return render(request, 'home.html')
 
 def membership_plans(request):
-    plans = MembershipPlan.objects.all()
+    if hasattr(request.user, 'client_profile'):
+        trainer = request.user.client_profile.primary_trainer
+        plans = MembershipPlan.objects.filter(trainer=trainer, is_active=True)
+    else:
+        plans = MembershipPlan.objects.filter(is_active=True)
     return render(request, 'membership_plans.html', {'plans': plans})
 
 @login_required
 def activate_membership(request, plan_id):
-    plan = get_object_or_404(MembershipPlan, id=plan_id)
-    profile = request.user.member_profile
+    plan = get_object_or_404(MembershipPlan, id=plan_id, is_active=True)
+    profile = request.user.client_profile
+    if plan.trainer != profile.primary_trainer:
+        messages.error(request, "You can only join plans from your trainer.")
+        return redirect('membership_plans')
     if profile.has_active_membership:
         messages.error(request, "You already have an active membership.")
         return redirect('membership_plans')
@@ -28,41 +48,64 @@ def activate_membership(request, plan_id):
     messages.success(request, f"Membership {plan.name} activated!")
     return redirect('dashboard')
 
-def run_events(request):
-    events = RunEvent.objects.filter(date__gte=timezone.now().date(), is_cancelled=False)
-    return render(request, 'run_events.html', {'events': events})
+def events(request):
+    if hasattr(request.user, 'client_profile'):
+        trainer = request.user.client_profile.primary_trainer
+        events = Event.objects.filter(trainer=trainer, date__gte=timezone.now().date(), is_cancelled=False)
+    else:
+        events = Event.objects.filter(date__gte=timezone.now().date(), is_cancelled=False)
+    type_filter = request.GET.get('type')
+    if type_filter:
+        events = events.filter(event_type=type_filter)
+    min_distance = request.GET.get('min_distance')
+    if min_distance:
+        try:
+            events = events.filter(distance_km__gte=float(min_distance))
+        except ValueError:
+            pass
+    max_distance = request.GET.get('max_distance')
+    if max_distance:
+        try:
+            events = events.filter(distance_km__lte=float(max_distance))
+        except ValueError:
+            pass
+    return render(request, 'events.html', {'events': events, 'type_filter': type_filter, 'min_distance': min_distance, 'max_distance': max_distance})
 
 @login_required
-def run_event_detail(request, event_id):
-    event = get_object_or_404(RunEvent, id=event_id)
-    registration = RunRegistration.objects.filter(user=request.user, event=event).first()
+def event_detail(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    # Ensure the event belongs to the client's trainer
+    if hasattr(request.user, 'client_profile') and event.trainer != request.user.client_profile.primary_trainer:
+        messages.error(request, "You can only view events from your trainer.")
+        return redirect('events')
+    registration = EventRegistration.objects.filter(user=request.user, event=event).first()
     if request.method == 'POST':
         if 'join' in request.POST:
-            if not request.user.member_profile.has_active_membership:
-                messages.error(request, "You need an active membership to join runs.")
-                return redirect('run_event_detail', event_id=event.id)
+            if not request.user.client_profile.has_active_membership:
+                messages.error(request, "You need an active membership to join events.")
+                return redirect('event_detail', event_id=event.id)
             if event.is_full or event.is_past:
-                messages.error(request, "Cannot join this run.")
-                return redirect('run_event_detail', event_id=event.id)
+                messages.error(request, "Cannot join this event.")
+                return redirect('event_detail', event_id=event.id)
             if registration:
                 messages.error(request, "Already registered.")
-                return redirect('run_event_detail', event_id=event.id)
-            RunRegistration.objects.create(user=request.user, event=event)
-            messages.success(request, "Joined the run!")
-            return redirect('run_event_detail', event_id=event.id)
+                return redirect('event_detail', event_id=event.id)
+            EventRegistration.objects.create(user=request.user, event=event)
+            messages.success(request, "Joined the event!")
+            return redirect('event_detail', event_id=event.id)
         elif 'cancel' in request.POST:
             if registration:
                 registration.status = 'cancelled'
                 registration.save()
                 messages.success(request, "Cancelled registration.")
-            return redirect('run_event_detail', event_id=event.id)
-    return render(request, 'run_event_detail.html', {'event': event, 'registration': registration})
+            return redirect('event_detail', event_id=event.id)
+    return render(request, 'event_detail.html', {'event': event, 'registration': registration})
 
 @login_required
 def dashboard(request):
-    profile = request.user.member_profile
+    profile = request.user.client_profile
     active_membership = profile.active_membership
-    upcoming_registrations = RunRegistration.objects.filter(
+    upcoming_registrations = EventRegistration.objects.filter(
         user=request.user,
         event__date__gte=timezone.now().date(),
         status='booked'
@@ -73,9 +116,9 @@ def dashboard(request):
     })
 
 @login_required
-def my_runs(request):
-    registrations = RunRegistration.objects.filter(user=request.user).select_related('event')
-    return render(request, 'my_runs.html', {'registrations': registrations})
+def my_events(request):
+    registrations = EventRegistration.objects.filter(user=request.user).select_related('event')
+    return render(request, 'my_events.html', {'registrations': registrations})
 
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -83,8 +126,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 def admin_dashboard(request):
     total_users = User.objects.count()
     active_memberships = Membership.objects.filter(status='active', end_date__gte=timezone.now().date()).count()
-    upcoming_events = RunEvent.objects.filter(date__gte=timezone.now().date(), is_cancelled=False).count()
-    registrations_next_week = RunRegistration.objects.filter(
+    upcoming_events = Event.objects.filter(date__gte=timezone.now().date(), is_cancelled=False).count()
+    registrations_next_week = EventRegistration.objects.filter(
         event__date__gte=timezone.now().date(),
         event__date__lte=timezone.now().date() + timedelta(days=7),
         status='booked'

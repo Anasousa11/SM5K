@@ -1,29 +1,39 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
-from datetime import timedelta
 
 
-class MemberProfile(models.Model):
+class TrainerProfile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="member_profile"
+        related_name="trainer_profile",
+    )
+    display_name = models.CharField(max_length=100, blank=True)
+    bio = models.TextField(blank=True)
+    specialties = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="e.g. running, strength, conditioning"
+    )
+    instagram_url = models.URLField(blank=True)
+    website_url = models.URLField(blank=True)
+
+    def __str__(self):
+        return self.display_name or self.user.get_full_name() or self.user.username
+
+
+class ClientProfile(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="client_profile",
     )
     phone = models.CharField(max_length=20, blank=True)
     emergency_contact_name = models.CharField(max_length=100, blank=True)
     emergency_contact_phone = models.CharField(max_length=20, blank=True)
-
-    PACE_CHOICES = [
-        ("slow", "Slow (7+ min/km)"),
-        ("medium", "Medium (5–7 min/km)"),
-        ("fast", "Fast (<5 min/km)"),
-    ]
-    pace = models.CharField(
-        max_length=10,
-        choices=PACE_CHOICES,
-        default="slow"
-    )
 
     LEVEL_CHOICES = [
         ("beginner", "Beginner"),
@@ -33,17 +43,25 @@ class MemberProfile(models.Model):
     level = models.CharField(
         max_length=20,
         choices=LEVEL_CHOICES,
-        default="beginner"
+        default="beginner",
+    )
+
+    primary_trainer = models.ForeignKey(
+        TrainerProfile,
+        on_delete=models.CASCADE,
+        related_name="clients",
+        help_text="The trainer this client works with.",
     )
 
     def __str__(self):
-        return f"{self.user.get_full_name() or self.user.username} profile"
+        return f"{self.user.get_full_name() or self.user.username} (client)"
 
     @property
     def active_membership(self):
+        """Return the most recent active membership (if any)."""
         today = timezone.now().date()
         return (
-            self.memberships
+            self.user.client_memberships
             .filter(status="active", end_date__gte=today)
             .order_by("-end_date")
             .first()
@@ -52,20 +70,40 @@ class MemberProfile(models.Model):
     @property
     def has_active_membership(self):
         return self.active_membership is not None
-        
+
 
 class MembershipPlan(models.Model):
+    trainer = models.ForeignKey(
+        TrainerProfile,
+        on_delete=models.CASCADE,
+        related_name="plans",
+    )
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     duration_days = models.PositiveIntegerField(default=30)
+
+    ACCESS_TYPE_CHOICES = [
+        ("sessions", "Limited sessions per week"),
+        ("unlimited", "Unlimited sessions"),
+    ]
+    access_type = models.CharField(
+        max_length=20,
+        choices=ACCESS_TYPE_CHOICES,
+        default="unlimited",
+    )
     max_sessions_per_week = models.PositiveIntegerField(
         default=0,
-        help_text="0 means unlimited sessions per week."
+        help_text="Used only if access type is 'sessions'. 0 means unlimited."
     )
 
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["trainer", "name"]
+
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.trainer})"
 
 
 class Membership(models.Model):
@@ -78,19 +116,19 @@ class Membership(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="memberships"
+        related_name="client_memberships",
     )
     plan = models.ForeignKey(
         MembershipPlan,
         on_delete=models.PROTECT,
-        related_name="memberships"
+        related_name="memberships",
     )
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
-        default="active"
+        default="active",
     )
     auto_renew = models.BooleanField(default=False)
 
@@ -111,35 +149,53 @@ class Membership(models.Model):
         return self.status == "active" and self.end_date and self.end_date >= today
 
 
-class RunEvent(models.Model):
+class Event(models.Model):
+    trainer = models.ForeignKey(
+        TrainerProfile,
+        on_delete=models.CASCADE,
+        related_name="events",
+    )
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField(blank=True, null=True)
-    distance_km = models.DecimalField(max_digits=4, decimal_places=1)
-    meeting_location = models.CharField(max_length=200)
-    capacity = models.PositiveIntegerField(default=20)
 
-    PACE_GROUP_CHOICES = [
-        ("slow", "Slow"),
-        ("medium", "Medium"),
-        ("fast", "Fast"),
-        ("mixed", "Mixed"),
+    location = models.CharField(max_length=255, blank=True)
+
+    EVENT_TYPE_CHOICES = [
+        ("running_club", "Running club"),
+        ("class", "Class / session"),
+        ("challenge", "Challenge (e.g. 1000 burpees)"),
     ]
-    pace_group = models.CharField(
-        max_length=10,
-        choices=PACE_GROUP_CHOICES,
-        default="mixed"
+    event_type = models.CharField(
+        max_length=20,
+        choices=EVENT_TYPE_CHOICES,
+        default="class",
     )
 
+    distance_km = models.DecimalField(
+        max_digits=4,
+        decimal_places=1,
+        blank=True,
+        null=True,
+        help_text="Optional: for running events.",
+    )
+    target_reps = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        help_text="Optional: for challenge events (e.g. 1000 burpees).",
+    )
+
+    capacity = models.PositiveIntegerField(default=20)
     is_cancelled = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["date", "start_time"]
 
     def __str__(self):
-        return f"{self.title} - {self.date}"
+        return f"{self.title} - {self.date} ({self.trainer})"
 
     @property
     def is_past(self):
@@ -159,7 +215,7 @@ class RunEvent(models.Model):
         return self.spots_left <= 0
 
 
-class RunRegistration(models.Model):
+class EventRegistration(models.Model):
     STATUS_CHOICES = [
         ("booked", "Booked"),
         ("cancelled", "Cancelled"),
@@ -168,28 +224,25 @@ class RunRegistration(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="run_registrations"
+        related_name="event_registrations",
     )
     event = models.ForeignKey(
-        RunEvent,
+        Event,
         on_delete=models.CASCADE,
-        related_name="registrations"
+        related_name="registrations",
     )
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
-        default="booked"
+        default="booked",
     )
     booked_at = models.DateTimeField(auto_now_add=True)
 
-    # Attendance / performance
     attended = models.BooleanField(default=False)
-    finish_time_minutes = models.PositiveIntegerField(
+    performance_notes = models.TextField(
         blank=True,
-        null=True,
-        help_text="Optional: whole minutes for finish time."
+        help_text="Optional notes e.g. completed 800/1000 burpees, PB time, etc."
     )
-    notes = models.TextField(blank=True)
 
     class Meta:
         unique_together = ("user", "event")

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Upcoming Events</h2>
+<form method="get">
+    <label>Event Type:</label>
+    <select name="type">
+        <option value="">All</option>
+        <option value="running_club" {% if type_filter == 'running_club' %}selected{% endif %}>Running Club</option>
+        <option value="class" {% if type_filter == 'class' %}selected{% endif %}>Class</option>
+        <option value="challenge" {% if type_filter == 'challenge' %}selected{% endif %}>Challenge</option>
+    </select>
+    <label>Min Distance (km):</label>
+    <input type="number" name="min_distance" step="0.1" value="{{ min_distance }}">
+    <label>Max Distance (km):</label>
+    <input type="number" name="max_distance" step="0.1" value="{{ max_distance }}">
+    <button type="submit">Filter</button>
+</form>
+{% for event in events %}
+    <div>
+        <h3><a href="{% url 'event_detail' event.id %}">{{ event.title }}</a></h3>
+        <p>{{ event.date }} at {{ event.start_time }}</p>
+        <p>Type: {{ event.get_event_type_display }}</p>
+        {% if event.distance_km %}
+            <p>Distance: {{ event.distance_km }} km</p>
+        {% endif %}
+        {% if event.target_reps %}
+            <p>Target: {{ event.target_reps }} reps</p>
+        {% endif %}
+        <p>Spots left: {{ event.spots_left }}</p>
+    </div>
+{% endfor %}
+{% endblock %}

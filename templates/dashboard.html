@@ -11,5 +11,5 @@
 {% for reg in upcoming_registrations %}
     <p>{{ reg.event.title }} on {{ reg.event.date }}</p>
 {% endfor %}
-<a href="{% url 'my_runs' %}">View all my runs</a>
+<a href="{% url 'my_events' %}">View all my events</a>
 {% endblock %}
