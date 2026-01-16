@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ event.title }}</h2>
+<p>{{ event.description }}</p>
+<p>Date: {{ event.date }}</p>
+<p>Time: {{ event.start_time }} - {{ event.end_time }}</p>
+<p>Location: {{ event.meeting_location }}</p>
+<p>Distance: {{ event.distance_km }} km</p>
+<p>Pace Group: {{ event.pace_group }}</p>
+<p>Capacity: {{ event.capacity }}</p>
+<p>Registrations: {{ event.registrations_count }}</p>
+{% if user.is_authenticated %}
+    {% if registration %}
+        {% if registration.status == 'booked' %}
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" name="cancel">Cancel Booking</button>
+            </form>
+        {% else %}
+            <p>You cancelled this booking.</p>
+        {% endif %}
+    {% else %}
+        {% if user.member_profile.has_active_membership %}
+            {% if not event.is_full and not event.is_past %}
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="join">Join Run</button>
+                </form>
+            {% else %}
+                <p>Cannot join this run.</p>
+            {% endif %}
+        {% else %}
+            <p>You need an active membership to book this run.</p>
+        {% endif %}
+    {% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>My Runs</h2>
+{% for reg in registrations %}
+    <div>
+        <h3>{{ reg.event.title }}</h3>
+        <p>Date: {{ reg.event.date }}</p>
+        <p>Status: {{ reg.status }}</p>
+        {% if reg.attended %}
+            <p>Attended: Yes</p>
+            {% if reg.finish_time_minutes %}
+                <p>Finish Time: {{ reg.finish_time_minutes }} minutes</p>
+            {% endif %}
+        {% else %}
+            <p>Attended: No</p>
+        {% endif %}
+    </div>
+{% endfor %}
+{% endblock %}

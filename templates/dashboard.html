@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Dashboard</h2>
+{% if active_membership %}
+    <p>Active Membership: {{ active_membership.plan.name }} until {{ active_membership.end_date }}</p>
+{% else %}
+    <p>No active membership. <a href="{% url 'membership_plans' %}">Choose a plan</a></p>
+{% endif %}
+<h3>Upcoming Runs</h3>
+{% for reg in upcoming_registrations %}
+    <p>{{ reg.event.title }} on {{ reg.event.date }}</p>
+{% endfor %}
+<a href="{% url 'my_runs' %}">View all my runs</a>
+{% endblock %}

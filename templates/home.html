@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Welcome to SinMancha Running Club</h1>
+<a href="{% url 'run_events' %}">View Runs</a>
+<a href="{% url 'membership_plans' %}">View Memberships</a>
+{% endblock %}
