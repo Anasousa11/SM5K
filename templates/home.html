@@ -1,8 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Welcome to SinMancha</h1>
-<p>Train Without Excuses</p>
-<a href="{% url 'events' %}">View Events</a>
-<a href="{% url 'membership_plans' %}">View Memberships</a>
+<section class="hero">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="brand">SM</div>
+    <h1 class="hero-heading">Train Hard. Run Strong.</h1>
+    <p class="hero-subline">Running toward your goals.</p>
+
+    <div class="hero-actions">
+      <a href="{% url 'membership_plans' %}" class="btn btn-primary">View Memberships</a>
+      <a href="{% url 'events' %}" class="btn btn-secondary">Upcoming Runs</a>
+    </div>
+  </div>
+</section>
 {% endblock %}
