@@ -1,13 +1,13 @@
 /* SinMancha Brand Styles */
 
 :root {
-  --primary-color: #0F1A25; /* Deep Navy Iron */
+  --primary-color: #1F1F1F; /* Charcoal */
   --accent-color: #D7263D; /* Sport Red */
   --neutral-color: #FFFFFF; /* White */
   --secondary-neutral: #AEB4BE; /* Steel Silver */
   --success-color: #78C957; /* Sport Green */
-  --text-color: #0F1A25;
-  --background-color: #FFFFFF;
+  --text-color: #FFFFFF; /* White for dark background */
+  --background-color: #1F1F1F; /* Charcoal background */
 }
 
 body {
@@ -27,6 +27,23 @@ nav {
   background-color: var(--primary-color);
   color: var(--neutral-color);
   padding: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.nav-transparent {
+  background-color: rgba(31, 31, 31, 0.8); /* semi-transparent charcoal */
+  backdrop-filter: blur(10px); /* modern glass effect */
+}
+
+nav a {
+  color: var(--neutral-color);
+  margin-right: 1rem;
+  text-decoration: none;
+  opacity: 0.9;
+}
+
+nav a:hover {
+  opacity: 1;
 }
 
 nav a {
@@ -132,7 +149,7 @@ form button:hover {
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0,0,0,0.25);
 }
 
 .hero-content {

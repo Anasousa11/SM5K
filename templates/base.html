@@ -14,7 +14,7 @@
     <link rel="manifest" href="/static/site.webmanifest">
 </head>
 <body>
-    <nav>
+    <nav class="{% if request.resolver_match.url_name == 'home' %}nav-transparent{% endif %}">
         <div class="container">
             <a href="{% url 'home' %}">SinMancha</a>
             {% if user.is_authenticated %}
