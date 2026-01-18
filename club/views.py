@@ -6,6 +6,7 @@ from datetime import timedelta
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
+from django.contrib.auth.decorators import user_passes_test
 from .models import MembershipPlan, Membership, Event, EventRegistration, ClientProfile, TrainerProfile
 
 def register(request):
@@ -138,3 +139,41 @@ def admin_dashboard(request):
         'upcoming_events': upcoming_events,
         'registrations_next_week': registrations_next_week
     })
+
+# Trainer and Client Dashboards
+
+def is_trainer(user):
+    return user.is_staff  # or hasattr(user, "trainer_profile")
+
+@login_required
+@user_passes_test(is_trainer)
+def trainer_dashboard(request):
+    trainer = request.user.trainer_profile
+    clients = ClientProfile.objects.filter(primary_trainer=trainer)
+    events = Event.objects.filter(trainer=trainer).order_by("date")
+    memberships = Membership.objects.filter(plan__trainer=trainer)
+
+    context = {
+        "client_count": clients.count(),
+        "event_count": events.count(),
+        "active_memberships": memberships.filter(status="active").count(),
+        "clients": clients[:10],
+        "events": events[:5],
+    }
+    return render(request, "trainer/dashboard.html", context)
+
+@login_required
+def client_dashboard(request):
+    user = request.user
+    client_profile = user.client_profile  # will exist for clients
+
+    membership = client_profile.active_membership
+    events = Event.objects.filter(trainer=client_profile.primary_trainer, date__gte=timezone.now().date())
+    my_registrations = EventRegistration.objects.filter(user=user)
+
+    context = {
+        "membership": membership,
+        "upcoming_events": events[:5],
+        "my_registrations": my_registrations,
+    }
+    return render(request, "client/dashboard.html", context)
