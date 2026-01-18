@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
+    {% load static %}
     <title>{% block title %}SinMancha{% endblock %}</title>
     <meta name="theme-color" content="#0F1A25">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="icon" href="{% static 'favicon/sinmancha.ico' %}" sizes="any">
-    <link rel="apple-touch-icon" href="{% static 'favicon/sinmancha_favicons/sinmancha_180.png' %}">
-    <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}">
+    <link rel="icon" href="{% static 'favicons/sinmancha.ico' %}" sizes="any">
+    <link rel="apple-touch-icon" href="{% static 'favicons/sinmancha_180.png' %}">
+    <link rel="manifest" href="{% static 'favicons/site.webmanifest' %}">
 </head>
 <body>
     <nav>
