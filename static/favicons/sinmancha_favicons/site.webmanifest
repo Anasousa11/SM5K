@@ -9,7 +9,7 @@
   "background_color": "#FFFFFF",
   "icons": [
     {
-      "src": "sinmancha_favicons/sinmancha_192.png",
+      "src": "sinmancha_192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
