@@ -51,6 +51,8 @@ class ClientProfile(models.Model):
         on_delete=models.CASCADE,
         related_name="clients",
         help_text="The trainer this client works with.",
+        null=True,
+        blank=True,
     )
 
     def __str__(self):

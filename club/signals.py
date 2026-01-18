@@ -5,5 +5,5 @@ from .models import ClientProfile
 
 @receiver(post_save, sender=User)
 def create_client_profile(sender, instance, created, **kwargs):
-    if created:
+    if created and not instance.is_staff:
         ClientProfile.objects.create(user=instance)
