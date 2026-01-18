@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Client Dashboard - SinMancha{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Client Dashboard</h1>
+
+    <div class="dashboard-section">
+        <h2>Your Membership</h2>
+        {% if membership %}
+            <p><strong>{{ membership.plan.name }}</strong></p>
+            <p>Status: {{ membership.get_status_display }}</p>
+            <p>Expires: {{ membership.end_date }}</p>
+        {% else %}
+            <p>No active membership. <a href="{% url 'membership_plans' %}">View plans</a></p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section">
+        <h2>Upcoming Events</h2>
+        <ul>
+            {% for event in upcoming_events %}
+                <li><a href="{% url 'event_detail' event.id %}">{{ event.title }}</a> - {{ event.date }} at {{ event.start_time }}</li>
+            {% empty %}
+                <p>No upcoming events.</p>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>My Registrations</h2>
+        <ul>
+            {% for reg in my_registrations %}
+                <li>{{ reg.event.title }} - {{ reg.get_status_display }}</li>
+            {% empty %}
+                <p>No registrations yet.</p>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

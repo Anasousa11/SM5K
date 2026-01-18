@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Trainer Dashboard - SinMancha{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Trainer Dashboard</h1>
+
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <h3>{{ client_count }}</h3>
+            <p>Total Clients</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ event_count }}</h3>
+            <p>Total Events</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ active_memberships }}</h3>
+            <p>Active Memberships</p>
+        </div>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>Recent Clients</h2>
+        <ul>
+            {% for client in clients %}
+                <li>{{ client.user.get_full_name }} - {{ client.level }}</li>
+            {% empty %}
+                <p>No clients yet.</p>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>Upcoming Events</h2>
+        <ul>
+            {% for event in events %}
+                <li>{{ event.title }} - {{ event.date }} at {{ event.start_time }}</li>
+            {% empty %}
+                <p>No upcoming events.</p>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
