@@ -79,6 +79,8 @@ class MembershipPlan(models.Model):
         TrainerProfile,
         on_delete=models.CASCADE,
         related_name="plans",
+        null=True,
+        blank=True,
     )
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -156,6 +158,8 @@ class Event(models.Model):
         TrainerProfile,
         on_delete=models.CASCADE,
         related_name="events",
+        null=True,
+        blank=True,
     )
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
