@@ -114,3 +114,82 @@ form button:hover {
 .membership-expired {
   color: var(--accent-color);
 }
+
+/* Hero Section */
+.hero {
+  position: relative;
+  height: 90vh;
+  min-height: 550px;
+  background: url('/static/images/hero.jpg') center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 4rem;
+  color: white;
+  font-family: 'Oswald', sans-serif;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+}
+
+.hero-content {
+  position: relative;
+  max-width: 650px;
+  z-index: 2;
+}
+
+.brand {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  letter-spacing: 1px;
+}
+
+.hero-heading {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.hero-subline {
+  font-size: 1.25rem;
+  opacity: 0.9;
+  margin-bottom: 2rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.9rem 1.4rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  text-decoration: none;
+  display: inline-block;
+  transition: 0.25s ease;
+}
+
+.btn-primary {
+  background: #264F36; /* forest */
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #1e422d;
+}
+
+.btn-secondary {
+  background: rgba(255,255,255,0.1);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.btn-secondary:hover {
+  background: rgba(255,255,255,0.2);
+}
