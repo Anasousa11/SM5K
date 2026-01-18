@@ -16,7 +16,10 @@
 <body>
     <nav class="{% if request.resolver_match.url_name == 'home' %}nav-transparent{% endif %}">
         <div class="container">
-            <a href="{% url 'home' %}">SinMancha</a>
+            <a href="{% url 'home' %}" class="nav-logo">
+            <img src="{% static 'img/logo-sm.png' %}" alt="SinMancha Logo">
+            </a>
+
             {% if user.is_authenticated %}
                 {% if user.is_staff %}
                     <a href="{% url 'trainer_dashboard' %}">Trainer Dashboard</a>
@@ -30,7 +33,7 @@
             {% endif %}
         </div>
     </nav>
-    <div class="container">
+    <div class="main-wrapper">
         {% if messages %}
             <ul class="messages">
                 {% for message in messages %}

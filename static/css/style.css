@@ -2,7 +2,7 @@
 
 :root {
   --primary-color: #1F1F1F; /* Charcoal */
-  --accent-color: #D7263D; /* Sport Red */
+  --accent-color: #6ec74b; /* Sport Green */
   --neutral-color: #FFFFFF; /* White */
   --secondary-neutral: #AEB4BE; /* Steel Silver */
   --success-color: #78C957; /* Sport Green */
@@ -57,10 +57,22 @@ nav a:hover {
   color: var(--accent-color);
 }
 
+.nav-logo img {
+  height: 32px; /* perfect for premium navbar */
+  width: auto;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+}
+
+.main-wrapper {
+  margin: 0;
+  padding: 0;
 }
 
 .btn {
@@ -134,30 +146,32 @@ form button:hover {
 }
 
 /* Hero Section */
+/* Hero Section */
 .hero {
   position: relative;
-  height: 100vh;
+  width: 100vw; /* full width */
+  height: calc(100vh - 60px); /* full screen minus navbar height (adjust 60px if needed) */
   margin: 0;
-  min-height: 550px;
-  background: url('/static/img/hero.jpg') center/cover no-repeat;
+  background: url('/static/img/hero.jpg') center center / cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 0 ;
   color: white;
   font-family: 'Oswald', sans-serif;
 }
 
+/* darker overlay for text visibility */
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.25);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .hero-content {
   position: relative;
   max-width: 650px;
   z-index: 2;
+  padding-left: 4rem; /* keeps text away from the very edge */
 }
 
 .brand {
@@ -171,12 +185,21 @@ form button:hover {
   font-size: 3.5rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
+  color: #ffffff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6); /* make it pop on top of image */
 }
 
 .hero-subline {
   font-size: 1.25rem;
-  opacity: 0.9;
   margin-bottom: 2rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+.brand {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  letter-spacing: 1px;
 }
 
 .hero-actions {
