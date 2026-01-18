@@ -85,20 +85,15 @@ class MembershipPlan(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
-    duration_days = models.PositiveIntegerField(default=30)
 
-    ACCESS_TYPE_CHOICES = [
-        ("sessions", "Limited sessions per week"),
-        ("unlimited", "Unlimited sessions"),
+    BILLING_INTERVAL_CHOICES = [
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
     ]
-    access_type = models.CharField(
-        max_length=20,
-        choices=ACCESS_TYPE_CHOICES,
-        default="unlimited",
-    )
-    max_sessions_per_week = models.PositiveIntegerField(
-        default=0,
-        help_text="Used only if access type is 'sessions'. 0 means unlimited."
+    billing_interval = models.CharField(
+        max_length=10,
+        choices=BILLING_INTERVAL_CHOICES,
+        default='monthly',
     )
 
     is_active = models.BooleanField(default=True)
@@ -107,7 +102,7 @@ class MembershipPlan(models.Model):
         ordering = ["trainer", "name"]
 
     def __str__(self):
-        return f"{self.name} ({self.trainer})"
+        return f"{self.name} ({self.billing_interval})"
 
 
 class Membership(models.Model):
@@ -144,7 +139,10 @@ class Membership(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.end_date and self.plan:
-            self.end_date = self.start_date + timedelta(days=self.plan.duration_days)
+            if self.plan.billing_interval == 'monthly':
+                self.end_date = self.start_date + timedelta(days=30)
+            elif self.plan.billing_interval == 'yearly':
+                self.end_date = self.start_date + timedelta(days=365)
         super().save(*args, **kwargs)
 
     @property
@@ -196,6 +194,10 @@ class Event(models.Model):
 
     capacity = models.PositiveIntegerField(default=20)
     is_cancelled = models.BooleanField(default=False)
+
+    # A + 2: recurring memberships, discounted events
+    price_non_member = models.DecimalField(max_digits=7, decimal_places=2)
+    price_member = models.DecimalField(max_digits=7, decimal_places=2)
 
     class Meta:
         ordering = ["date", "start_time"]
