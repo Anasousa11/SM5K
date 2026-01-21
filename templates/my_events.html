@@ -1,20 +1,32 @@
 {% extends "base.html" %}
 
+{% block title %}My Events | SinMancha{% endblock %}
+
 {% block content %}
-<h2>My Events</h2>
-{% for reg in registrations %}
-    <div>
-        <h3>{{ reg.event.title }}</h3>
-        <p>Date: {{ reg.event.date }}</p>
-        <p>Status: {{ reg.status }}</p>
+<section class="page-header">
+  <h1>My Events</h1>
+</section>
+
+<section class="events-list">
+  {% if registrations %}
+    {% for reg in registrations %}
+      <article class="event-card">
+        <h2>{{ reg.event.title }}</h2>
+        <p class="event-meta">
+          {{ reg.event.date }} · {{ reg.event.start_time|time:"H:i" }}
+          {% if reg.event.location %} · {{ reg.event.location }}{% endif %}
+        </p>
+        <p>Status: {{ reg.get_status_display }}</p>
         {% if reg.attended %}
-            <p>Attended: Yes</p>
-            {% if reg.performance_notes %}
-                <p>Notes: {{ reg.performance_notes }}</p>
-            {% endif %}
-        {% else %}
-            <p>Attended: No</p>
+          <p>Attended ✅</p>
         {% endif %}
-    </div>
-{% endfor %}
+        {% if reg.performance_notes %}
+          <p>Notes: {{ reg.performance_notes }}</p>
+        {% endif %}
+      </article>
+    {% endfor %}
+  {% else %}
+    <p style="padding:0 2rem 2rem;">You haven’t booked any events yet.</p>
+  {% endif %}
+</section>
 {% endblock %}
