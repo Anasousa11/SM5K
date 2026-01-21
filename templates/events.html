@@ -1,33 +1,80 @@
 {% extends "base.html" %}
 
+{% block title %}Sessions & Runs | SinMancha{% endblock %}
+
 {% block content %}
-<h2>Upcoming Events</h2>
-<form method="get">
-    <label>Event Type:</label>
-    <select name="type">
-        <option value="">All</option>
-        <option value="running_club" {% if type_filter == 'running_club' %}selected{% endif %}>Running Club</option>
-        <option value="class" {% if type_filter == 'class' %}selected{% endif %}>Class</option>
-        <option value="challenge" {% if type_filter == 'challenge' %}selected{% endif %}>Challenge</option>
-    </select>
-    <label>Min Distance (km):</label>
-    <input type="number" name="min_distance" step="0.1" value="{{ min_distance }}">
-    <label>Max Distance (km):</label>
-    <input type="number" name="max_distance" step="0.1" value="{{ max_distance }}">
-    <button type="submit">Filter</button>
-</form>
-{% for event in events %}
+<section class="page-header">
+  <h1>Sessions & Runs</h1>
+  <p>Find your next run, session or challenge.</p>
+</section>
+
+<section class="container" style="padding-top: 0; padding-bottom: 1rem;">
+  <form method="get" class="filters-form" style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:flex-end;">
     <div>
-        <h3><a href="{% url 'event_detail' event.id %}">{{ event.title }}</a></h3>
-        <p>{{ event.date }} at {{ event.start_time }}</p>
-        <p>Type: {{ event.get_event_type_display }}</p>
-        {% if event.distance_km %}
-            <p>Distance: {{ event.distance_km }} km</p>
-        {% endif %}
-        {% if event.target_reps %}
-            <p>Target: {{ event.target_reps }} reps</p>
-        {% endif %}
-        <p>Spots left: {{ event.spots_left }}</p>
+      <label style="font-size:0.85rem;">Type</label><br>
+      <select name="type">
+        <option value="">All</option>
+        <option value="running_club" {% if type_filter == "running_club" %}selected{% endif %}>Running club</option>
+        <option value="class" {% if type_filter == "class" %}selected{% endif %}>Class / session</option>
+        <option value="challenge" {% if type_filter == "challenge" %}selected{% endif %}>Challenge</option>
+      </select>
     </div>
-{% endfor %}
+
+    <div>
+      <label style="font-size:0.85rem;">Min distance (km)</label><br>
+      <input type="number" step="0.1" name="min_distance" value="{{ min_distance }}">
+    </div>
+
+    <div>
+      <label style="font-size:0.85rem;">Max distance (km)</label><br>
+      <input type="number" step="0.1" name="max_distance" value="{{ max_distance }}">
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-secondary">Apply filters</button>
+    </div>
+  </form>
+</section>
+
+<section class="events-list">
+  {% if events %}
+    {% for event in events %}
+      <article class="event-card">
+        <h2>
+          <a href="{% url 'event_detail' event.id %}">{{ event.title }}</a>
+        </h2>
+
+        <p class="event-meta">
+          {{ event.date }} · {{ event.start_time|time:"H:i" }}
+          {% if event.location %} · {{ event.location }}{% endif %}
+        </p>
+
+        <p class="event-type">
+          {{ event.get_event_type_display }}
+          {% if event.distance_km %} · {{ event.distance_km }} km{% endif %}
+          {% if event.target_reps %} · Target: {{ event.target_reps }} reps{% endif %}
+        </p>
+
+        {% if event.price_member or event.price_non_member %}
+          <p class="event-price">
+            {% if event.price_member %}Member: £{{ event.price_member }}{% endif %}
+            {% if event.price_non_member %} · Non-member: £{{ event.price_non_member }}{% endif %}
+          </p>
+        {% else %}
+          <p class="event-price event-free">Free</p>
+        {% endif %}
+
+        <p class="event-spots">
+          {% if event.is_full %}
+            Fully booked
+          {% else %}
+            {{ event.spots_left }} spots left
+          {% endif %}
+        </p>
+      </article>
+    {% endfor %}
+  {% else %}
+    <p style="padding: 0 2rem 2rem;">No upcoming events yet.</p>
+  {% endif %}
+</section>
 {% endblock %}
