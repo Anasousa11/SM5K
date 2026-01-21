@@ -34,7 +34,7 @@ class MembershipPlansView(ListView):
 
     def get_queryset(self):
         qs = MembershipPlan.objects.filter(is_active=True)
-        # If the user is a client, show plans for their trainer only
+        # If the user is a client, show plans for their trainer only (if set)
         if self.request.user.is_authenticated and hasattr(
             self.request.user, "client_profile"
         ):
@@ -54,7 +54,7 @@ class EventsView(ListView):
             date__gte=timezone.now().date(), is_cancelled=False
         )
 
-        # If the user is a client, only show events for their trainer
+        # If the user is a client, only show events for their trainer (if set)
         if self.request.user.is_authenticated and hasattr(
             self.request.user, "client_profile"
         ):
@@ -127,7 +127,6 @@ class EventDetailView(LoginRequiredMixin, DetailView):
 
         # Join event
         if "join" in request.POST:
-            # Must be a client with an active membership
             if not hasattr(request.user, "client_profile"):
                 messages.error(request, "You need a client profile to join events.")
                 return redirect("event_detail", event_id=event.id)
@@ -161,12 +160,10 @@ class EventDetailView(LoginRequiredMixin, DetailView):
                 messages.success(request, "Your registration has been cancelled.")
             return redirect("event_detail", event_id=event.id)
 
-        # Fallback to normal GET
         return self.get(request, *args, **kwargs)
 
 
 # ---------- Auth & client views ----------
-
 
 def register(request):
     """
@@ -268,7 +265,6 @@ def my_events(request):
 
 
 # ---------- Trainer & admin dashboards ----------
-
 
 def is_trainer(user):
     return user.is_staff or hasattr(user, "trainer_profile")
