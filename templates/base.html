@@ -14,38 +14,55 @@
     <link rel="manifest" href="/static/site.webmanifest">
 </head>
 <body>
-    <nav class="{% if request.resolver_match.url_name == 'home' %}nav-transparent{% endif %}">
-    <div class="container nav-inner">
-        <a href="{% url 'home' %}" class="nav-logo">
-            <img src="{% static 'img/logo-sm.png' %}" alt="SinMancha Logo">
-            <span>SinMancha</span>
-        </a>
+    <nav class="{% if request.resolver_match and request.resolver_match.url_name == 'home' %}nav-transparent{% endif %}">
+        <div class="container nav-inner">
+            <!-- LEFT: LOGO -->
+            <a href="{% url 'home' %}" class="nav-logo">
+                <img src="{% static 'img/logo-sm.png' %}" alt="SinMancha Logo">
+                <span>SinMancha</span>
+            </a>
 
-        <!-- RIGHT: LINKS -->
-        <div class="nav-links">
-            {% if user.is_authenticated %}
-                {% if user.is_staff %}
-                    <a href="{% url 'trainer_dashboard' %}">Trainer Dashboard</a>
+            <!-- CENTER: MAIN LINKS -->
+            <div class="nav-links nav-links-main">
+                <a href="{% url 'membership_plans' %}">Memberships</a>
+                <a href="{% url 'events' %}">Events</a>
+            </div>
+
+            <!-- RIGHT: AUTH / DASHBOARD -->
+            <div class="nav-links nav-links-auth">
+                {% if user.is_authenticated %}
+                    {% if user.is_staff or user.trainer_profile %}
+                        <a href="{% url 'trainer_dashboard' %}">Trainer Dashboard</a>
+                    {% elif user.client_profile %}
+                        <a href="{% url 'client_dashboard' %}">Client Dashboard</a>
+                    {% else %}
+                        <a href="{% url 'dashboard' %}">Dashboard</a>
+                    {% endif %}
+
+                    <!-- Logout via built-in auth view -->
+                    <form action="{% url 'logout' %}" method="post" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit">Logout</button>
+                    </form>
                 {% else %}
-                    <a href="{% url 'client_dashboard' %}">Client Dashboard</a>
+                    <a href="{% url 'login' %}">Login</a>
+                    <a href="{% url 'register' %}">Register</a>
                 {% endif %}
-                <a href="{% url 'logout' %}">Logout</a>
-            {% else %}
-                <a href="{% url 'login' %}">Login</a>
-                <a href="{% url 'register' %}">Register</a>
-            {% endif %}
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
     <div class="main-wrapper">
         {% if messages %}
             <ul class="messages">
                 {% for message in messages %}
-                    <li class="{% if 'error' in message.tags %}error{% elif 'success' in message.tags %}success{% endif %}">{{ message }}</li>
+                    <li class="{% if 'error' in message.tags %}error{% elif 'success' in message.tags %}success{% endif %}">
+                        {{ message }}
+                    </li>
                 {% endfor %}
             </ul>
         {% endif %}
+
         {% block content %}{% endblock %}
     </div>
 </body>
