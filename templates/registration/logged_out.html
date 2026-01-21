@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}Logged out | SinMancha{% endblock %}
+
+{% block content %}
+<section class="auth-form">
+  <p>You have been logged out.</p>
+  <a href="{% url 'home' %}" class="btn btn-secondary">Back to home</a>
+</section>
+{% endblock %}
