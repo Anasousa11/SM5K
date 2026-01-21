@@ -1,9 +1,19 @@
 {% extends "base.html" %}
 
+{% block title %}Admin Dashboard | SinMancha{% endblock %}
+
 {% block content %}
-<h2>Admin Dashboard</h2>
-<p>Total Users: {{ total_users }}</p>
-<p>Active Memberships: {{ active_memberships }}</p>
-<p>Upcoming Runs: {{ upcoming_events }}</p>
-<p>Registrations Next Week: {{ registrations_next_week }}</p>
+<section class="page-header">
+  <h1>Admin Dashboard</h1>
+</section>
+
+<section class="dashboard-grid">
+  <div class="card">
+    <h2>Overview</h2>
+    <p>Total users: {{ total_users }}</p>
+    <p>Active memberships: {{ active_memberships }}</p>
+    <p>Upcoming events: {{ upcoming_events }}</p>
+    <p>Bookings next 7 days: {{ registrations_next_week }}</p>
+  </div>
+</section>
 {% endblock %}
