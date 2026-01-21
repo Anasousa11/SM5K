@@ -1,43 +1,63 @@
 {% extends "base.html" %}
 
+{% block title %}{{ event.title }} | SinMancha{% endblock %}
+
 {% block content %}
-<h2>{{ event.title }}</h2>
-<p>{{ event.description }}</p>
-<p>Date: {{ event.date }}</p>
-<p>Time: {{ event.start_time }} - {{ event.end_time }}</p>
-<p>Location: {{ event.location }}</p>
-<p>Type: {{ event.get_event_type_display }}</p>
-{% if event.distance_km %}
-    <p>Distance: {{ event.distance_km }} km</p>
-{% endif %}
-{% if event.target_reps %}
-    <p>Target Reps: {{ event.target_reps }}</p>
-{% endif %}
-<p>Capacity: {{ event.capacity }}</p>
-<p>Registrations: {{ event.registrations_count }}</p>
-{% if user.is_authenticated %}
-    {% if registration %}
-        {% if registration.status == 'booked' %}
-            <form method="post">
-                {% csrf_token %}
-                <button type="submit" name="cancel">Cancel Registration</button>
-            </form>
-        {% else %}
-            <p>You cancelled this registration.</p>
-        {% endif %}
+<section class="page-header">
+  <h1>{{ event.title }}</h1>
+  <p class="event-meta">
+    {{ event.date }} · {{ event.start_time|time:"H:i" }}
+    {% if event.end_time %} – {{ event.end_time|time:"H:i" }}{% endif %}
+    {% if event.location %} · {{ event.location }}{% endif %}
+  </p>
+</section>
+
+<section class="container" style="padding-top: 0;">
+  {% if event.description %}
+    <p style="margin-bottom:1rem;">{{ event.description }}</p>
+  {% endif %}
+
+  <p class="event-type">
+    {{ event.get_event_type_display }}
+    {% if event.distance_km %} · {{ event.distance_km }} km{% endif %}
+    {% if event.target_reps %} · Target: {{ event.target_reps }} reps{% endif %}
+  </p>
+
+  {% if event.price_member or event.price_non_member %}
+    <p class="event-price">
+      {% if event.price_member %}Member: £{{ event.price_member }}{% endif %}
+      {% if event.price_non_member %} · Non-member: £{{ event.price_non_member }}{% endif %}
+    </p>
+  {% else %}
+    <p class="event-price event-free">Free</p>
+  {% endif %}
+
+  <p class="event-spots">
+    {% if event.is_full %}
+      Fully booked
     {% else %}
-        {% if user.client_profile.has_active_membership %}
-            {% if not event.is_full and not event.is_past %}
-                <form method="post">
-                    {% csrf_token %}
-                    <button type="submit" name="join">Join Event</button>
-                </form>
-            {% else %}
-                <p>Cannot join this event.</p>
-            {% endif %}
-        {% else %}
-            <p>You need an active membership to join events.</p>
-        {% endif %}
+      {{ event.spots_left }} spots left
     {% endif %}
-{% endif %}
+  </p>
+
+  {% if user.is_authenticated %}
+    <form method="post" style="margin-top:1rem;">
+      {% csrf_token %}
+      {% if registration and registration.status == "booked" %}
+        <button type="submit" name="cancel" class="btn btn-secondary">Cancel booking</button>
+      {% else %}
+        {% if event.is_full or event.is_past %}
+          <button class="btn btn-secondary" disabled>Not available</button>
+        {% else %}
+          <button type="submit" name="join" class="btn btn-primary">Join this event</button>
+        {% endif %}
+      {% endif %}
+    </form>
+  {% else %}
+    <p style="margin-top:1rem;">
+      <a href="{% url 'login' %}">Login</a> or
+      <a href="{% url 'register' %}">create an account</a> to book this event.
+    </p>
+  {% endif %}
+</section>
 {% endblock %}
