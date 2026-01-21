@@ -15,11 +15,14 @@
 </head>
 <body>
     <nav class="{% if request.resolver_match.url_name == 'home' %}nav-transparent{% endif %}">
-        <div class="container">
-            <a href="{% url 'home' %}" class="nav-logo">
+    <div class="container nav-inner">
+        <a href="{% url 'home' %}" class="nav-logo">
             <img src="{% static 'img/logo-sm.png' %}" alt="SinMancha Logo">
-            </a>
+            <span>SinMancha</span>
+        </a>
 
+        <!-- RIGHT: LINKS -->
+        <div class="nav-links">
             {% if user.is_authenticated %}
                 {% if user.is_staff %}
                     <a href="{% url 'trainer_dashboard' %}">Trainer Dashboard</a>
@@ -32,7 +35,9 @@
                 <a href="{% url 'register' %}">Register</a>
             {% endif %}
         </div>
-    </nav>
+    </div>
+</nav>
+
     <div class="main-wrapper">
         {% if messages %}
             <ul class="messages">
