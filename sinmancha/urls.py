@@ -26,4 +26,5 @@ urlpatterns = [
     # App routes
     path("", include("club.urls")),
     path("payments/", include("payments.urls")),
+    
 ]

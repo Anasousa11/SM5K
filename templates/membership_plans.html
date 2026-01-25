@@ -1,48 +1,12 @@
-{% extends "base.html" %}
-
-{% block title %}Membership Plans | SinMancha{% endblock %}
-
-{% block content %}
-<section class="page-header">
-  <h1>Membership Plans</h1>
-  <p>Choose a plan that fits your week and your goals.</p>
-</section>
-
-<section class="plans-grid">
-  {% if plans %}
-    {% for plan in plans %}
-      <article class="plan-card">
-        <h2>{{ plan.name }}</h2>
-
-        <p class="plan-price">
-          £{{ plan.price }}
-          <span class="billing">
-            {% if plan.billing_interval == "monthly" %}/ month{% else %}/ year{% endif %}
-          </span>
-        </p>
-
-        {% if plan.description %}
-          <p>{{ plan.description }}</p>
-        {% endif %}
-
-        {% if plan.trainer %}
-          <p style="font-size: 0.9rem; color: var(--secondary-neutral);">
-            Coach: {{ plan.trainer.display_name|default:plan.trainer.user.username }}
-          </p>
-        {% endif %}
-
-        {% if user.is_authenticated and user.client_profile %}
-          <form action="{% url 'activate_membership' plan.id %}" method="post">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary">Activate membership</button>
-          </form>
-        {% else %}
-          <a href="{% url 'register' %}" class="btn btn-primary">Create account to join</a>
-        {% endif %}
-      </article>
-    {% endfor %}
+{% if user.is_authenticated and user.client_profile %}
+  {% if user.client_profile.has_active_membership %}
+    <button class="btn btn-secondary" disabled>Membership active</button>
   {% else %}
-    <p style="padding: 0 2rem 2rem;">No plans available yet.</p>
+    <form action="{% url 'create_checkout' plan.id %}" method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary">Pay with card</button>
+    </form>
   {% endif %}
-</section>
-{% endblock %}
+{% else %}
+  <a href="{% url 'register' %}" class="btn btn-primary">Create account to join</a>
+{% endif %}
