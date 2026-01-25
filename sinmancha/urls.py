@@ -19,12 +19,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-
-    # Auth (login / logout / password reset)
     path("accounts/", include("django.contrib.auth.urls")),
-
-    # App routes
-    path("", include("club.urls")),
     path("payments/", include("payments.urls")),
-    
+    path("", include("club.urls")),
 ]
