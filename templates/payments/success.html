@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Payment Successful{% endblock %}
+{% block content %}
+<section class="page-header">
+  <h1>Payment successful</h1>
+  <p>Your membership has been activated{% if plan %} for <strong>{{ plan.name }}</strong>{% endif %}.</p>
+  <a class="btn btn-primary" href="{% url 'client_dashboard' %}">Go to dashboard</a>
+</section>
+{% endblock %}
