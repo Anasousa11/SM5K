@@ -169,15 +169,22 @@ def register(request):
     """
     Simple registration:
     - creates a User
-    - creates a ClientProfile
+    - ensures a ClientProfile exists
     - logs the user in
     - sends them to the client dashboard
     """
+    # if already logged in, don't allow registering a second account in same session
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+
     if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            ClientProfile.objects.create(user=user)
+
+            # Safe: if something else already created a ClientProfile, don't crash
+            ClientProfile.objects.get_or_create(user=user)
+
             login(request, user)
             return redirect("client_dashboard")
     else:
@@ -192,6 +199,7 @@ def dashboard(request):
     Generic /dashboard/ route:
     - trainers → trainer_dashboard
     - clients → client_dashboard
+    - others → home
     """
     if request.user.is_staff or hasattr(request.user, "trainer_profile"):
         return redirect("trainer_dashboard")
