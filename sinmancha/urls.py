@@ -18,8 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('accounts/', include('django.contrib.auth.urls')),
-    path('', include('club.urls')),
+    path("admin/", admin.site.urls),
+
+    # Auth (login / logout / password reset)
     path("accounts/", include("django.contrib.auth.urls")),
+
+    # App routes
+    path("", include("club.urls")),
+    path("payments/", include("payments.urls")),
 ]
