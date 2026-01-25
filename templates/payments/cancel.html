@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Payment Cancelled{% endblock %}
+{% block content %}
+<section class="page-header">
+  <h1>Payment cancelled</h1>
+  <p>No money was taken. You can try again whenever you're ready.</p>
+  <a class="btn btn-secondary" href="{% url 'membership_plans' %}">Back to plans</a>
+</section>
+{% endblock %}
