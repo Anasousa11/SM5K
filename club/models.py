@@ -1,5 +1,4 @@
 from datetime import timedelta
-
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -58,16 +57,16 @@ class ClientProfile(models.Model):
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username} (client)"
 
+  
+
     @property
     def active_membership(self):
-        """Return the most recent active membership (if any)."""
         today = timezone.now().date()
-        return (
-            self.user.client_memberships
-            .filter(status="active", end_date__gte=today)
-            .order_by("-end_date")
-            .first()
-        )
+        return (Membership.objects
+                .filter(user=self.user, start_date__lte=today, end_date__gte=today)
+                .select_related("plan")
+                .order_by("-end_date")
+                .first())
 
     @property
     def has_active_membership(self):
