@@ -33,15 +33,15 @@ class MembershipPlansView(ListView):
     context_object_name = "plans"
 
     def get_queryset(self):
-        qs = MembershipPlan.objects.filter(is_active=True)
-        # If the user is a client, show plans for their trainer only (if set)
-        if self.request.user.is_authenticated and hasattr(
-            self.request.user, "client_profile"
-        ):
-            trainer = self.request.user.client_profile.primary_trainer
-            if trainer:
-                qs = qs.filter(trainer=trainer)
-        return qs
+        return MembershipPlan.objects.filter(is_active=True).select_related("trainer")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        active_membership = None
+        if self.request.user.is_authenticated and hasattr(self.request.user, "client_profile"):
+            active_membership = self.request.user.client_profile.active_membership
+        context["active_membership"] = active_membership
+        return context
 
 
 class EventsView(ListView):

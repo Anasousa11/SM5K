@@ -33,8 +33,10 @@
 
         {# --- ACTION BUTTONS (Stripe / Register / Active) --- #}
         {% if user.is_authenticated and user.client_profile %}
-          {% if user.client_profile.has_active_membership %}
+          {% if active_membership and active_membership.plan_id == plan.id %}
             <button class="btn btn-secondary" disabled>Membership active</button>
+          {% elif user.client_profile.has_active_membership %}
+            <button class="btn btn-outline-secondary" disabled>Already have a membership</button>
           {% else %}
             <form action="{% url 'create_checkout' plan.id %}" method="post">
               {% csrf_token %}
@@ -44,6 +46,7 @@
         {% else %}
           <a href="{% url 'register' %}" class="btn btn-primary">Create account to join</a>
         {% endif %}
+
       </article>
     {% endfor %}
   {% else %}
