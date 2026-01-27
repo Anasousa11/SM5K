@@ -13,12 +13,12 @@ from club.models import MembershipPlan, Membership
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+
 @login_required
 def create_checkout_session(request, plan_id):
     if request.method != "POST":
         return redirect("membership_plans")
 
-    # Must be a client to buy membership
     if not hasattr(request.user, "client_profile"):
         messages.error(request, "You need a client account to buy a membership.")
         return redirect("membership_plans")
@@ -26,12 +26,10 @@ def create_checkout_session(request, plan_id):
     profile = request.user.client_profile
     plan = get_object_or_404(MembershipPlan, id=plan_id, is_active=True)
 
-    # Optional: only allow buying plans from your trainer (if both set)
     if plan.trainer and profile.primary_trainer and plan.trainer != profile.primary_trainer:
         messages.error(request, "You can only buy plans from your trainer.")
         return redirect("membership_plans")
 
-    # Prevent buying if already active
     if profile.has_active_membership:
         messages.error(request, "You already have an active membership.")
         return redirect("membership_plans")
@@ -43,8 +41,15 @@ def create_checkout_session(request, plan_id):
     # Decimal pounds -> integer pence
     amount_pence = int(plan.price * 100)
 
-    success_url = request.build_absolute_uri(reverse("payment_success")) + "?session_id={CHECKOUT_SESSION_ID}"
+    success_url = request.build_absolute_uri(
+        reverse("payment_success")
+    ) + "?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = request.build_absolute_uri(reverse("payment_cancel"))
+
+    # Build product_data safely (DON'T send empty description)
+    product_data = {"name": f"{plan.name} ({plan.billing_interval})"}
+    if plan.description and plan.description.strip():
+        product_data["description"] = plan.description.strip()[:200]
 
     try:
         session = stripe.checkout.Session.create(
@@ -55,10 +60,7 @@ def create_checkout_session(request, plan_id):
                     "price_data": {
                         "currency": "gbp",
                         "unit_amount": amount_pence,
-                        "product_data": {
-                            "name": f"{plan.name} ({plan.billing_interval})",
-                            "description": (plan.description or "")[:200],
-                        },
+                        "product_data": product_data,
                     },
                     "quantity": 1,
                 }
@@ -70,12 +72,11 @@ def create_checkout_session(request, plan_id):
             success_url=success_url,
             cancel_url=cancel_url,
         )
-    except Exception:
-        messages.error(request, "Could not start checkout. Please try again.")
+        return redirect(session.url, permanent=False)
+
+    except Exception as e:
+        messages.error(request, f"Stripe error: {e}")
         return redirect("membership_plans")
-
-    return redirect(session.url, permanent=False)
-
 
 @login_required
 def payment_success(request):
