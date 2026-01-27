@@ -66,4 +66,16 @@
         {% block content %}{% endblock %}
     </div>
 </body>
+<footer class="mt-5 py-4 border-top">
+  <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
+    <div>
+      <strong>SinMancha</strong>
+      <div class="text-muted small">Training. Community. Progress.</div>
+    </div>
+    <div class="small text-muted">
+      © {% now "Y" %} SinMancha • <a href="{% url 'home' %}">Home</a>
+    </div>
+  </div>
+</footer>
+
 </html>

@@ -240,32 +240,13 @@ class EventRegistration(models.Model):
         ("cancelled", "Cancelled"),
     ]
 
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="event_registrations",
-    )
-    event = models.ForeignKey(
-        Event,
-        on_delete=models.CASCADE,
-        related_name="registrations",
-    )
-    status = models.CharField(
-        max_length=10,
-        choices=STATUS_CHOICES,
-        default="booked",
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    event = models.ForeignKey("Event", on_delete=models.CASCADE, related_name="registrations")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="booked")
     booked_at = models.DateTimeField(auto_now_add=True)
-
-    attended = models.BooleanField(default=False)
-    performance_notes = models.TextField(
-        blank=True,
-        help_text="Optional notes e.g. completed 800/1000 burpees, PB time, etc."
-    )
 
     class Meta:
         unique_together = ("user", "event")
-        ordering = ["-booked_at"]
 
     def __str__(self):
         return f"{self.user} -> {self.event} ({self.status})"

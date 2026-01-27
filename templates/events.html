@@ -77,4 +77,39 @@
     <p style="padding: 0 2rem 2rem;">No upcoming events yet.</p>
   {% endif %}
 </section>
+<div class="row g-4">
+  {% for event in events %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">{{ event.title }}</h5>
+          <p class="card-text text-muted mb-2">
+            {{ event.date|date:"M d, Y" }} • {{ event.time|time:"H:i" }}
+          </p>
+          {% if event.description %}<p class="card-text">{{ event.description|truncatewords:20 }}</p>{% endif %}
+
+          <div class="mt-auto d-flex gap-2">
+            <a class="btn btn-outline-light" href="{% url 'event_detail' event.id %}">Details</a>
+
+            {% if user.is_authenticated and user.client_profile %}
+              {% if event.id in joined_ids %}
+                <form method="post" action="{% url 'leave_event' event.id %}">
+                  {% csrf_token %}
+                  <button class="btn btn-secondary" type="submit">Joined ✓</button>
+                </form>
+              {% else %}
+                <form method="post" action="{% url 'join_event' event.id %}">
+                  {% csrf_token %}
+                  <button class="btn btn-primary" type="submit">Join</button>
+                </form>
+              {% endif %}
+            {% else %}
+              <a class="btn btn-primary" href="{% url 'register' %}">Login to join</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
 {% endblock %}

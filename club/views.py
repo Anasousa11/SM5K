@@ -19,6 +19,39 @@ from .models import (
     MembershipPlan,
     TrainerProfile,
 )
+from .models import Event, EventRegistration
+
+@login_required
+def join_event(request, event_id):
+    if request.method != "POST":
+        return redirect("events")
+
+    if not hasattr(request.user, "client_profile"):
+        messages.error(request, "Only clients can join events.")
+        return redirect("events")
+
+    if not request.user.client_profile.has_active_membership:
+        messages.error(request, "You need an active membership to join events.")
+        return redirect("events")
+
+    event = get_object_or_404(Event, id=event_id)
+
+    if event.is_full or event.is_past:
+        messages.error(request, "You cannot join this event.")
+        return redirect("events")
+
+    EventRegistration.objects.get_or_create(user=request.user, event=event)
+    messages.success(request, "You’ve joined this event.")
+    return redirect("events")
+
+@login_required
+def leave_event(request, event_id):
+    if request.method != "POST":
+        return redirect("events")
+
+    EventRegistration.objects.filter(user=request.user, event_id=event_id).delete()
+    messages.success(request, "You’ve left this event.")
+    return redirect("events")
 
 
 # ---------- Class-based views ----------
@@ -82,6 +115,21 @@ class EventsView(ListView):
                 pass
 
         return queryset
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context["type_filter"] = self.request.GET.get("type")
+            context["min_distance"] = self.request.GET.get("min_distance")
+            context["max_distance"] = self.request.GET.get("max_distance")
+
+            joined_ids = set()
+            if self.request.user.is_authenticated:
+                joined_ids = set(
+                    EventRegistration.objects.filter(user=self.request.user)
+                    .values_list("event_id", flat=True)
+                )
+            context["joined_ids"] = joined_ids
+            return context
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -327,3 +375,13 @@ def admin_dashboard(request):
             "registrations_next_week": registrations_next_week,
         },
     )
+def events_list(request):
+    events = Event.objects.all().order_by("date")
+    joined_ids = set()
+
+    if request.user.is_authenticated:
+        joined_ids = set(
+            EventRegistration.objects.filter(user=request.user).values_list("event_id", flat=True)
+        )
+
+    return render(request, "events.html", {"events": events, "joined_ids": joined_ids})
