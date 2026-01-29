@@ -22,93 +22,97 @@
 
     <div>
       <label style="font-size:0.85rem;">Min distance (km)</label><br>
-      <input type="number" step="0.1" name="min_distance" value="{{ min_distance }}">
+      <input type="number" step="0.1" name="min_distance" value="{{ min_distance|default:'' }}">
     </div>
 
     <div>
       <label style="font-size:0.85rem;">Max distance (km)</label><br>
-      <input type="number" step="0.1" name="max_distance" value="{{ max_distance }}">
+      <input type="number" step="0.1" name="max_distance" value="{{ max_distance|default:'' }}">
     </div>
 
     <div>
       <button type="submit" class="btn btn-secondary">Apply filters</button>
+      <a href="{% url 'events' %}" class="btn btn-outline-secondary">Reset</a>
     </div>
   </form>
 </section>
 
-<section class="events-list">
+<section class="container pb-4">
   {% if events %}
-    {% for event in events %}
-      <article class="event-card">
-        <h2>{{ event.title }}</h2>
+    <div class="row g-4">
+      {% for event in events %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body d-flex flex-column">
 
+              <div class="d-flex justify-content-between align-items-start gap-2">
+                <h5 class="card-title mb-1">{{ event.title }}</h5>
+                <span class="badge text-bg-dark">{{ event.get_event_type_display }}</span>
+              </div>
 
-        <p class="event-meta">
-          {{ event.date }} · {{ event.start_time|time:"H:i" }}
-          {% if event.location %} · {{ event.location }}{% endif %}
-        </p>
+              <p class="card-text text-muted mb-2">
+                {{ event.date|date:"M d, Y" }} • {{ event.start_time|time:"H:i" }}
+                {% if event.location %}<br><small>{{ event.location }}</small>{% endif %}
+              </p>
 
-        <p class="event-type">
-          {{ event.get_event_type_display }}
-          {% if event.distance_km %} · {{ event.distance_km }} km{% endif %}
-          {% if event.target_reps %} · Target: {{ event.target_reps }} reps{% endif %}
-        </p>
-
-        {% if event.price_member or event.price_non_member %}
-          <p class="event-price">
-            {% if event.price_member %}Member: £{{ event.price_member }}{% endif %}
-            {% if event.price_non_member %} · Non-member: £{{ event.price_non_member }}{% endif %}
-          </p>
-        {% else %}
-          <p class="event-price event-free">Free</p>
-        {% endif %}
-
-        <p class="event-spots">
-          {% if event.is_full %}
-            Fully booked
-          {% else %}
-            {{ event.spots_left }} spots left
-          {% endif %}
-        </p>
-      </article>
-    {% endfor %}
-  {% else %}
-    <p style="padding: 0 2rem 2rem;">No upcoming events yet.</p>
-  {% endif %}
-</section>
-<div class="row g-4">
-  {% for event in events %}
-    <div class="col-md-6 col-lg-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title">{{ event.title }}</h5>
-          <p class="card-text text-muted mb-2">
-            {{ event.date|date:"M d, Y" }} • {{ event.time|time:"H:i" }}
-          </p>
-          {% if event.description %}<p class="card-text">{{ event.description|truncatewords:20 }}</p>{% endif %}
-
-          <div class="mt-auto d-flex gap-2">
-            <a class="btn btn-outline-light" href="{% url 'event_detail' event.id %}">Details</a>
-
-            {% if user.is_authenticated and user.client_profile %}
-              {% if event.id in joined_ids %}
-                <form method="post" action="{% url 'leave_event' event.id %}">
-                  {% csrf_token %}
-                  <button class="btn btn-secondary" type="submit">Joined ✓</button>
-                </form>
-              {% else %}
-                <form method="post" action="{% url 'join_event' event.id %}">
-                  {% csrf_token %}
-                  <button class="btn btn-primary" type="submit">Join</button>
-                </form>
+              {% if event.description %}
+                <p class="card-text">{{ event.description|truncatewords:22 }}</p>
               {% endif %}
-            {% else %}
-              <a class="btn btn-primary" href="{% url 'register' %}">Login to join</a>
-            {% endif %}
+
+              <div class="mt-2">
+                {% if event.distance_km %}
+                  <span class="badge text-bg-secondary">Distance: {{ event.distance_km }} km</span>
+                {% endif %}
+                {% if event.target_reps %}
+                  <span class="badge text-bg-secondary">Target: {{ event.target_reps }} reps</span>
+                {% endif %}
+              </div>
+
+              <div class="mt-3">
+                {% if event.is_full %}
+                  <span class="badge text-bg-danger">Fully booked</span>
+                {% else %}
+                  <span class="badge text-bg-success">{{ event.spots_left }} spots left</span>
+                {% endif %}
+
+                {% if event.price_member or event.price_non_member %}
+                  <div class="small text-muted mt-2">
+                    {% if event.price_member %}Member: £{{ event.price_member }}{% endif %}
+                    {% if event.price_non_member %}{% if event.price_member %} • {% endif %}Non-member: £{{ event.price_non_member }}{% endif %}
+                  </div>
+                {% else %}
+                  <div class="small text-muted mt-2">Free</div>
+                {% endif %}
+              </div>
+
+              <div class="mt-auto pt-3 d-flex gap-2">
+                {# Optional: only show Details if you actually have event_detail route #}
+                {# <a class="btn btn-outline-secondary" href="{% url 'event_detail' event.id %}">Details</a> #}
+
+                {% if user.is_authenticated and user.client_profile %}
+                  {% if event.id in joined_ids %}
+                    <form method="post" action="{% url 'leave_event' event.id %}">
+                      {% csrf_token %}
+                      <button class="btn btn-secondary" type="submit">Joined ✓ (Leave)</button>
+                    </form>
+                  {% else %}
+                    <form method="post" action="{% url 'join_event' event.id %}">
+                      {% csrf_token %}
+                      <button class="btn btn-primary" type="submit" {% if event.is_full %}disabled{% endif %}>Join</button>
+                    </form>
+                  {% endif %}
+                {% else %}
+                  <a class="btn btn-primary" href="{% url 'login' %}">Login to join</a>
+                {% endif %}
+              </div>
+
+            </div>
           </div>
         </div>
-      </div>
+      {% endfor %}
     </div>
-  {% endfor %}
-</div>
+  {% else %}
+    <p class="container">No upcoming events yet.</p>
+  {% endif %}
+</section>
 {% endblock %}
