@@ -113,22 +113,20 @@ class EventsView(ListView):
 
         return queryset
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["type_filter"] = self.request.GET.get("type")
-        context["min_distance"] = self.request.GET.get("min_distance")
-        context["max_distance"] = self.request.GET.get("max_distance")
+   def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context["type_filter"] = self.request.GET.get("type")
+    context["min_distance"] = self.request.GET.get("min_distance")
+    context["max_distance"] = self.request.GET.get("max_distance")
 
-        joined_ids = set()
-        if self.request.user.is_authenticated:
-            joined_ids = set(
-                EventRegistration.objects.filter(user=self.request.user)
-                .values_list("event_id", flat=True)
-            )
-
-        context["joined_ids"] = joined_ids
-        return context
-
+    joined_ids = set()
+    if self.request.user.is_authenticated:
+        joined_ids = set(
+            EventRegistration.objects.filter(user=self.request.user)
+            .values_list("event_id", flat=True)
+        )
+    context["joined_ids"] = joined_ids
+    return context
 
 class EventDetailView(LoginRequiredMixin, DetailView):
     model = Event
