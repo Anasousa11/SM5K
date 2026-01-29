@@ -40,9 +40,8 @@
   {% if events %}
     {% for event in events %}
       <article class="event-card">
-        <h2>
-          <a href="{% url 'event_detail' event.id %}">{{ event.title }}</a>
-        </h2>
+        <h2>{{ event.title }}</h2>
+
 
         <p class="event-meta">
           {{ event.date }} · {{ event.start_time|time:"H:i" }}

@@ -242,7 +242,9 @@ class EventRegistration(models.Model):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     event = models.ForeignKey("Event", on_delete=models.CASCADE, related_name="registrations")
+
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="booked")
+    attended = models.BooleanField(default=False)  # <-- FIX: default so NOT NULL is satisfied
     booked_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

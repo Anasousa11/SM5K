@@ -12,11 +12,12 @@ urlpatterns = [
     path("membership-plans/", views.MembershipPlansView.as_view(), name="membership_plans"),
     path("activate-membership/<int:plan_id>/", views.activate_membership, name="activate_membership"),
 
-    # Events
-    # Events
+    # Events 
     path("events/", views.EventsView.as_view(), name="events"),
+    path("events/<int:event_id>/", views.EventDetailView.as_view(), name="event_detail"),
     path("events/<int:event_id>/join/", views.join_event, name="join_event"),
     path("events/<int:event_id>/leave/", views.leave_event, name="leave_event"),
+
     # Dashboards
     path("dashboard/", views.dashboard, name="dashboard"),
     path("client/dashboard/", views.client_dashboard, name="client_dashboard"),
