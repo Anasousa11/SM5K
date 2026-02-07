@@ -75,9 +75,9 @@
         <h4>SinMancha</h4>
         <p>A community of runners committed to training hard and achieving greatness together.</p>
         <div class="footer-socials">
-          <span class="social-link">Instagram</span>
-          <span class="social-link">Twitter</span>
-          <span class="social-link">Facebook</span>
+          <a class="social-link" href="#">Instagram</a>
+          <a class="social-link" href="#">Twitter</a>
+          <a class="social-link" href="#">Facebook</a>
         </div>
       </div>
 
@@ -85,10 +85,10 @@
       <div class="footer-section">
         <h4>Quick Links</h4>
         <ul class="footer-links">
-          <li>Home</li>
-          <li>Memberships</li>
-          <li>Events</li>
-          <li>Dashboard</li>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li><a href="{% url 'membership_plans' %}">Memberships</a></li>
+          <li><a href="{% url 'events' %}">Events</a></li>
+          <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
         </ul>
       </div>
 
@@ -112,14 +112,14 @@
       </div>
     </div>
 
-    <div class="footer-bottom">
+      <div class="footer-bottom">
       <p>&copy; {% now "Y" %} SinMancha Running Club. All rights reserved.</p>
       <div class="footer-legal">
-        <span>Privacy Policy</span>
+        <a href="#">Privacy Policy</a>
         <span>•</span>
-        <span>Terms of Service</span>
+        <a href="#">Terms of Service</a>
         <span>•</span>
-        <span>Cookie Policy</span>
+        <a href="#">Cookie Policy</a>
       </div>
     </div>
   </div>
