@@ -63,14 +63,61 @@
         {% block content %}{% endblock %}
     </div>
 </body>
-<footer class="mt-5 py-4 border-top">
-  <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
-    <div>
-      <strong>SinMancha</strong>
-      <div class="text-muted small">Training. Community. Progress.</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <!-- Brand & About -->
+      <div class="footer-section">
+        <h4>SinMancha</h4>
+        <p>A community of runners committed to training hard and achieving greatness together.</p>
+        <div class="footer-socials">
+          <a href="#" class="social-link">Instagram</a>
+          <a href="#" class="social-link">Twitter</a>
+          <a href="#" class="social-link">Facebook</a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="footer-section">
+        <h4>Quick Links</h4>
+        <ul class="footer-links">
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li><a href="{% url 'membership_plans' %}">Memberships</a></li>
+          <li><a href="{% url 'events' %}">Events</a></li>
+          <li><a href="{% url 'my_events' %}">My Events</a></li>
+        </ul>
+      </div>
+
+      <!-- Resources -->
+      <div class="footer-section">
+        <h4>Resources</h4>
+        <ul class="footer-links">
+          <li><a href="#">Training Tips</a></li>
+          <li><a href="#">Nutrition Guide</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact -->
+      <div class="footer-section">
+        <h4>Get in Touch</h4>
+        <p><strong>Email:</strong> <a href="mailto:info@sinmancha.com">info@sinmancha.com</a></p>
+        <p><strong>Phone:</strong> <a href="tel:+1234567890">+1 (234) 567-890</a></p>
+        <p><strong>Hours:</strong> Mon-Fri 8am-6pm</p>
+      </div>
     </div>
-    <div class="small text-muted">
-      © {% now "Y" %} SinMancha • <a href="{% url 'home' %}">Home</a>
+
+    <div class="footer-bottom">
+      <p>&copy; {% now "Y" %} SinMancha Running Club. All rights reserved.</p>
+      <div class="footer-legal">
+        <a href="#">Privacy Policy</a>
+        <span>•</span>
+        <a href="#">Terms of Service</a>
+        <span>•</span>
+        <a href="#">Cookie Policy</a>
+      </div>
     </div>
   </div>
 </footer>
