@@ -186,20 +186,8 @@ def leave_event(request, event_id):
 # -------------------------
 
 def register(request):
-    if request.user.is_authenticated:
-        return redirect("dashboard")
-
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            ClientProfile.objects.get_or_create(user=user)
-            login(request, user)
-            return redirect("client_dashboard")
-    else:
-        form = UserCreationForm()
-
-    return render(request, "registration/register.html", {"form": form})
+    # Redirect to allauth signup
+    return redirect("account_signup")
 
 
 @login_required
