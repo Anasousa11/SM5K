@@ -323,11 +323,24 @@ nav {
   color: var(--neutral-color);
 }
 
+.about-text h3 {
+  font-size: 1.3rem;
+  color: var(--accent-color);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
 .about-text > p {
   font-size: 1rem;
   color: var(--secondary-neutral);
-  margin-bottom: 2rem;
-  line-height: 1.6;
+  margin-bottom: 1.25rem;
+  line-height: 1.7;
+}
+
+.about-text p strong {
+  color: var(--neutral-color);
+  font-weight: 600;
 }
 
 .about-highlights {
