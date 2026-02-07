@@ -1,17 +1,153 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-<section class="hero">
+<!-- HERO SECTION WITH ROTATING CAROUSEL -->
+<section class="hero-carousel-section">
+  <div class="carousel-container">
+    <div class="carousel-slide active" style="background-image: url('{% static "img/hero.jpg" %}')"></div>
+    <div class="carousel-slide" style="background-image: url('{% static "img/hero.jpg" %}')"></div>
+    <div class="carousel-slide" style="background-image: url('{% static "img/hero.jpg" %}')"></div>
+  </div>
+  
   <div class="hero-overlay"></div>
+  
   <div class="hero-content">
-    <div class="brand">SinMancha</div>
+    <div class="brand">SinMancha Running Club</div>
     <h1 class="hero-heading">Train Hard. Run Strong.</h1>
-    <p class="hero-subline">Running toward your goals.</p>
+    <p class="hero-subline">Join a community of runners building strength and endurance together.</p>
 
     <div class="hero-actions">
       <a href="{% url 'membership_plans' %}" class="btn btn-primary">View Memberships</a>
       <a href="{% url 'events' %}" class="btn btn-secondary">Upcoming Runs</a>
     </div>
   </div>
+
+  <!-- Carousel indicators -->
+  <div class="carousel-indicators">
+    <button class="indicator active" data-slide="0"></button>
+    <button class="indicator" data-slide="1"></button>
+    <button class="indicator" data-slide="2"></button>
+  </div>
 </section>
+
+<!-- ABOUT US SECTION -->
+<section class="section section-about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-text">
+        <h2>About SinMancha</h2>
+        <p>SinMancha is more than just a running club—it's a community dedicated to helping runners of all levels achieve their goals. Whether you're training for your first 5K or preparing for a marathon, our experienced trainers and supportive community are here to guide you every step of the way.</p>
+        
+        <div class="about-highlights">
+          <div class="highlight-item">
+            <h3>Expert Guidance</h3>
+            <p>Train under experienced coaches who understand your goals and challenges.</p>
+          </div>
+          <div class="highlight-item">
+            <h3>Community First</h3>
+            <p>Join runners from all backgrounds and experience levels in a supportive environment.</p>
+          </div>
+          <div class="highlight-item">
+            <h3>Structured Programs</h3>
+            <p>Follow tailored training plans designed to help you reach peak performance.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="about-image">
+        <img src="{% static 'img/hero.jpg' %}" alt="Running community">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS SECTION -->
+<section class="section section-testimonials">
+  <div class="container">
+    <h2 style="text-align: center; margin-bottom: 2rem;">What Our Runners Say</h2>
+    
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="testimonial-header">
+          <div class="stars">★★★★★</div>
+        </div>
+        <p class="testimonial-text">"SinMancha transformed my running journey. The coaches are incredibly supportive and the community keeps me motivated to push harder every session."</p>
+        <div class="testimonial-author">
+          <strong>Sarah Martinez</strong>
+          <span>Marathon Runner</span>
+        </div>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="testimonial-header">
+          <div class="stars">★★★★★</div>
+        </div>
+        <p class="testimonial-text">"I was a complete beginner when I joined. The structured programs and guidance from trainers helped me run my first half-marathon in just 6 months!"</p>
+        <div class="testimonial-author">
+          <strong>James Chen</strong>
+          <span>Beginner Runner</span>
+        </div>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="testimonial-header">
+          <div class="stars">★★★★★</div>
+        </div>
+        <p class="testimonial-text">"The community here is unbeatable. Training with people who share your passion makes every run feel special and keeps you accountable."</p>
+        <div class="testimonial-author">
+          <strong>Emma Rodriguez</strong>
+          <span>5K Champion</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA SECTION -->
+<section class="section section-cta">
+  <div class="container">
+    <div class="section-cta-inner">
+      <div class="section-cta-text">
+        <h2>Ready to Join?</h2>
+        <p>Start your running journey today with SinMancha. Choose a membership plan that fits your goals.</p>
+      </div>
+      <div class="section-cta-actions">
+        <a href="{% url 'membership_plans' %}" class="btn btn-primary">Get Started</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const slides = document.querySelectorAll('.carousel-slide');
+  const indicators = document.querySelectorAll('.carousel-indicators .indicator');
+  let currentSlide = 0;
+
+  function showSlide(n) {
+    slides.forEach(slide => slide.classList.remove('active'));
+    indicators.forEach(ind => ind.classList.remove('active'));
+    
+    slides[n].classList.add('active');
+    indicators[n].classList.add('active');
+  }
+
+  function nextSlide() {
+    currentSlide = (currentSlide + 1) % slides.length;
+    showSlide(currentSlide);
+  }
+
+  // Auto-rotate every 6 seconds
+  setInterval(nextSlide, 6000);
+
+  // Click handlers for indicators
+  indicators.forEach((indicator, index) => {
+    indicator.addEventListener('click', () => {
+      currentSlide = index;
+      showSlide(currentSlide);
+    });
+  });
+});
+</script>
 {% endblock %}

@@ -223,7 +223,222 @@ nav {
   color: var(--accent-color);
 }
 
-/* HERO SECTION */
+/* HERO CAROUSEL SECTION */
+
+.hero-carousel-section {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 60px);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  color: white;
+  overflow: hidden;
+}
+
+.carousel-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+}
+
+.carousel-slide.active {
+  opacity: 1;
+}
+
+.hero-carousel-section .hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(0,0,0,0.4), rgba(0,0,0,0.75));
+  z-index: 1;
+}
+
+.hero-carousel-section .hero-content {
+  position: relative;
+  max-width: 650px;
+  z-index: 2;
+  padding: 3rem 2rem 3rem 4rem;
+}
+
+/* Carousel indicators */
+.carousel-indicators {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.75rem;
+  z-index: 3;
+}
+
+.carousel-indicators .indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.carousel-indicators .indicator.active {
+  background: var(--accent-color);
+  width: 32px;
+  border-radius: 6px;
+}
+
+.carousel-indicators .indicator:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* ABOUT SECTION */
+
+.section-about {
+  background: linear-gradient(135deg, #141b24 0%, #151d27 100%);
+  padding: 4rem 0;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+.about-text h2 {
+  font-size: 2.2rem;
+  margin-bottom: 1rem;
+  color: var(--neutral-color);
+}
+
+.about-text > p {
+  font-size: 1rem;
+  color: var(--secondary-neutral);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.about-highlights {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.highlight-item {
+  background: rgba(110, 199, 75, 0.08);
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(110, 199, 75, 0.2);
+}
+
+.highlight-item h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--accent-color);
+}
+
+.highlight-item p {
+  font-size: 0.9rem;
+  color: var(--secondary-neutral);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.about-image {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+.about-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.about-image:hover img {
+  transform: scale(1.05);
+}
+
+/* TESTIMONIALS SECTION */
+
+.section-testimonials {
+  background: var(--background-color);
+  padding: 4rem 0;
+}
+
+.section-testimonials h2 {
+  font-size: 2.2rem;
+  color: var(--neutral-color);
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.testimonial-card {
+  background: #141b24;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(110, 199, 75, 0.4);
+}
+
+.testimonial-header {
+  margin-bottom: 1rem;
+}
+
+.stars {
+  color: var(--accent-color);
+  font-size: 0.95rem;
+  letter-spacing: 0.2em;
+}
+
+.testimonial-text {
+  font-size: 0.95rem;
+  color: var(--secondary-neutral);
+  line-height: 1.6;
+  margin: 1rem 0;
+}
+
+.testimonial-author {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.testimonial-author strong {
+  color: var(--neutral-color);
+  font-size: 0.95rem;
+}
+
+.testimonial-author span {
+  color: var(--accent-color);
+  font-size: 0.85rem;
+}
+
+/* HERO SECTION (legacy) */
 
 .hero {
   position: relative;
