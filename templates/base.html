@@ -26,6 +26,9 @@
             <div class="nav-links nav-links-main">
                 <a href="{% url 'membership_plans' %}">Memberships</a>
                 <a href="{% url 'events' %}">Events</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'exercise_plan' %}">Exercise Plan</a>
+                {% endif %}
             </div>
 
             <!-- RIGHT: AUTH / DASHBOARD -->

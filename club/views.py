@@ -1,4 +1,5 @@
 from datetime import timedelta
+import json
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -7,9 +8,11 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.generic import DetailView, ListView, TemplateView
+from django.views.decorators.http import require_http_methods
 
 from .models import (
     ClientProfile,
@@ -19,6 +22,7 @@ from .models import (
     MembershipPlan,
     TrainerProfile,
 )
+from .exercise_recommendations import generate_exercise_plan
 
 # -------------------------
 # BASIC PAGES
@@ -281,4 +285,84 @@ def admin_dashboard(request):
                 is_cancelled=False
             ).count(),
         },
+    )
+
+
+# -------------------------
+# EXERCISE RECOMMENDATIONS API
+# -------------------------
+
+@require_http_methods(["POST"])
+@login_required
+def get_exercise_recommendations(request):
+    """
+    API endpoint to generate personalized exercise plans based on user metrics.
+    
+    Expected POST data:
+    {
+        "weight_kg": float,
+        "height_cm": float,
+        "goal": string (optional, defaults to "general_fitness")
+    }
+    
+    Returns:
+    {
+        "success": bool,
+        "data": {
+            "weight_kg": float,
+            "height_cm": float,
+            "bmi": float,
+            "category": string,
+            "plan": {
+                "category": string,
+                "focus": string,
+                "weekly_plan": list of exercises
+            }
+        }
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        weight_kg = float(data.get("weight_kg"))
+        height_cm = float(data.get("height_cm"))
+        goal = data.get("goal", "general_fitness")
+        
+        if weight_kg <= 0 or height_cm <= 0:
+            return JsonResponse({
+                "success": False,
+                "error": "Weight and height must be positive numbers"
+            }, status=400)
+        
+        plan = generate_exercise_plan(weight_kg, height_cm, goal)
+        
+        return JsonResponse({
+            "success": True,
+            "data": plan
+        })
+    
+    except (ValueError, KeyError, json.JSONDecodeError) as e:
+        return JsonResponse({
+            "success": False,
+            "error": f"Invalid request data: {str(e)}"
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": f"Server error: {str(e)}"
+        }, status=500)
+
+
+@login_required
+def exercise_plan_page(request):
+    """
+    Page for clients to generate and view their personalized exercise plans.
+    """
+    user_has_profile = hasattr(request.user, "client_profile")
+    
+    return render(
+        request,
+        "exercise_plan.html",
+        {
+            "user_has_profile": user_has_profile,
+        }
     )

@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="section exercise-plan-section">
+  <div class="container">
+    <h1>Personalized Exercise Plan Generator</h1>
+    <p class="intro-text">Get a customized workout plan tailored to your body metrics. Enter your weight and height to receive a personalized weekly exercise schedule.</p>
+
+    <div class="exercise-plan-container">
+      <!-- Form Section -->
+      <div class="form-section">
+        <h2>Your Metrics</h2>
+        <form id="metricsForm" class="metrics-form">
+          {% csrf_token %}
+          
+          <div class="form-group">
+            <label for="weight">Weight (kg)</label>
+            <input 
+              type="number" 
+              id="weight" 
+              name="weight_kg" 
+              placeholder="e.g., 75" 
+              step="0.1"
+              min="20"
+              max="300"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="height">Height (cm)</label>
+            <input 
+              type="number" 
+              id="height" 
+              name="height_cm" 
+              placeholder="e.g., 180" 
+              step="1"
+              min="100"
+              max="250"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="goal">Fitness Goal (Optional)</label>
+            <select id="goal" name="goal">
+              <option value="general_fitness">General Fitness</option>
+              <option value="weight_loss">Weight Loss</option>
+              <option value="strength_building">Strength Building</option>
+              <option value="endurance">Endurance</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Generate My Plan</button>
+        </form>
+      </div>
+
+      <!-- Results Section -->
+      <div class="results-section" id="resultsSection" style="display: none;">
+        <div class="bmi-card">
+          <div class="bmi-value" id="bmiValue"></div>
+          <div class="bmi-category" id="bmiCategory"></div>
+          <p class="bmi-note" id="bmiNote"></p>
+        </div>
+
+        <div class="plan-results" id="planResults"></div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-state" id="loadingState" style="display: none;">
+        <div class="spinner"></div>
+        <p>Generating your personalized plan...</p>
+      </div>
+
+      <!-- Error State -->
+      <div class="error-state" id="errorState" style="display: none;">
+        <p id="errorMessage"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.exercise-plan-section {
+  background: linear-gradient(135deg, #141b24 0%, #151d27 100%);
+  padding: 3rem 0;
+  min-height: calc(100vh - 200px);
+}
+
+.exercise-plan-section h1 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--neutral-color);
+}
+
+.intro-text {
+  text-align: center;
+  color: var(--secondary-neutral);
+  font-size: 1rem;
+  margin-bottom: 3rem;
+}
+
+.exercise-plan-container {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+.form-section {
+  background: #0a0f18;
+  padding: 2rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+}
+
+.form-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--neutral-color);
+}
+
+.metrics-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  color: var(--neutral-color);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  padding: 0.75rem;
+  background: #141b24;
+  border: 1px solid rgba(110, 199, 75, 0.3);
+  border-radius: 0.5rem;
+  color: var(--neutral-color);
+  font-size: 0.95rem;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(110, 199, 75, 0.1);
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--accent-color);
+  color: var(--primary-color);
+  width: 100%;
+}
+
+.btn-primary:hover {
+  background: #5db840;
+  transform: translateY(-2px);
+}
+
+.results-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.bmi-card {
+  background: linear-gradient(135deg, rgba(110, 199, 75, 0.15), rgba(70, 180, 80, 0.15));
+  padding: 2rem;
+  border-radius: 1rem;
+  border: 2px solid var(--accent-color);
+  text-align: center;
+}
+
+.bmi-value {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  margin-bottom: 0.5rem;
+}
+
+.bmi-category {
+  font-size: 1.5rem;
+  color: var(--neutral-color);
+  margin-bottom: 0.75rem;
+}
+
+.bmi-note {
+  color: var(--secondary-neutral);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.plan-results {
+  background: #0a0f18;
+  padding: 2rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.plan-header {
+  margin-bottom: 2rem;
+}
+
+.plan-header h3 {
+  font-size: 1.3rem;
+  color: var(--accent-color);
+  margin-bottom: 0.5rem;
+}
+
+.plan-header p {
+  color: var(--secondary-neutral);
+  margin: 0;
+}
+
+.weekly-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.day-plan {
+  background: #141b24;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border-left: 4px solid var(--accent-color);
+}
+
+.day-plan h4 {
+  color: var(--neutral-color);
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+}
+
+.day-plan p {
+  color: var(--secondary-neutral);
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+}
+
+.exercises-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.exercise-item {
+  background: rgba(110, 199, 75, 0.08);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--accent-color);
+  color: var(--secondary-neutral);
+  font-size: 0.9rem;
+}
+
+.exercise-name {
+  font-weight: 600;
+  color: var(--neutral-color);
+}
+
+.nutrition-section {
+  background: #141b24;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border-left: 4px solid #FFA500;
+  margin-top: 2rem;
+}
+
+.nutrition-section h4 {
+  color: #FFA500;
+  margin: 0 0 0.75rem 0;
+}
+
+.nutrition-section p {
+  color: var(--secondary-neutral);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(110, 199, 75, 0.2);
+  border-top: 4px solid var(--accent-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-state p {
+  color: var(--secondary-neutral);
+  font-size: 1rem;
+}
+
+.error-state {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  text-align: center;
+}
+
+.error-state p {
+  color: #ff6b6b;
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .exercise-plan-container {
+    grid-template-columns: 1fr;
+  }
+
+  .form-section {
+    position: static;
+  }
+
+  .exercise-plan-section h1 {
+    font-size: 1.8rem;
+  }
+
+  .bmi-value {
+    font-size: 2.5rem;
+  }
+
+  .bmi-category {
+    font-size: 1.2rem;
+  }
+}
+</style>
+
+<script>
+document.getElementById('metricsForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const weight = document.getElementById('weight').value;
+  const height = document.getElementById('height').value;
+  const goal = document.getElementById('goal').value;
+  
+  // Show loading state
+  document.getElementById('resultsSection').style.display = 'none';
+  document.getElementById('errorState').style.display = 'none';
+  document.getElementById('loadingState').style.display = 'flex';
+  
+  try {
+    const response = await fetch('{% url "api_exercise_recommendations" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      },
+      body: JSON.stringify({
+        weight_kg: parseFloat(weight),
+        height_cm: parseFloat(height),
+        goal: goal,
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      displayPlan(result.data);
+    } else {
+      showError(result.error);
+    }
+  } catch (error) {
+    showError('Failed to generate plan. Please try again.');
+    console.error(error);
+  } finally {
+    document.getElementById('loadingState').style.display = 'none';
+  }
+});
+
+function displayPlan(data) {
+  const bmiValue = document.getElementById('bmiValue');
+  const bmiCategory = document.getElementById('bmiCategory');
+  const planResults = document.getElementById('planResults');
+  
+  // Display BMI
+  bmiValue.textContent = data.bmi;
+  bmiCategory.textContent = data.category;
+  
+  // Display plan
+  let planHTML = `
+    <div class="plan-header">
+      <h3>${data.plan.category}</h3>
+      <p>Focus: ${data.plan.focus}</p>
+      <p>Weekly Frequency: ${data.plan.weekly_frequency}</p>
+    </div>
+    
+    <div class="weekly-plan">
+  `;
+  
+  data.plan.weekly_plan.forEach(day => {
+    planHTML += `
+      <div class="day-plan">
+        <h4>${day.day}</h4>
+        <p>${day.focus}</p>
+        <ul class="exercises-list">
+    `;
+    
+    day.exercises.forEach(exercise => {
+      planHTML += `
+        <li class="exercise-item">
+          <span class="exercise-name">${exercise.name}</span>
+          ${exercise.sets ? ` - ${exercise.sets} sets` : ''}
+          ${exercise.reps ? ` x ${exercise.reps}` : ''}
+          ${exercise.duration ? ` (${exercise.duration})` : ''}
+        </li>
+      `;
+    });
+    
+    planHTML += `
+        </ul>
+      </div>
+    `;
+  });
+  
+  planHTML += `</div>`;
+  
+  if (data.plan.nutrition_focus) {
+    planHTML += `
+      <div class="nutrition-section">
+        <h4>Nutrition Focus</h4>
+        <p>${data.plan.nutrition_focus}</p>
+      </div>
+    `;
+  }
+  
+  if (data.plan.important_notes) {
+    planHTML += `
+      <div class="nutrition-section" style="border-left-color: #FFD700; margin-top: 1rem;">
+        <h4 style="color: #FFD700;">Important Notes</h4>
+        <ul style="padding-left: 1rem; margin: 0;">
+    `;
+    data.plan.important_notes.forEach(note => {
+      planHTML += `<li style="color: var(--secondary-neutral); margin-bottom: 0.5rem;">${note}</li>`;
+    });
+    planHTML += `</ul></div>`;
+  }
+  
+  planResults.innerHTML = planHTML;
+  document.getElementById('resultsSection').style.display = 'flex';
+}
+
+function showError(message) {
+  document.getElementById('errorMessage').textContent = message;
+  document.getElementById('errorState').style.display = 'block';
+}
+</script>
+{% endblock %}

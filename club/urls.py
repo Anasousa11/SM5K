@@ -26,4 +26,8 @@ urlpatterns = [
 
     # Client events
     path("my-events/", views.my_events, name="my_events"),
+    
+    # Exercise Recommendations
+    path("exercise-plan/", views.exercise_plan_page, name="exercise_plan"),
+    path("api/exercise-recommendations/", views.get_exercise_recommendations, name="api_exercise_recommendations"),
 ]
