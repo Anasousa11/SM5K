@@ -398,11 +398,25 @@ nav {
   padding: 2rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: transform 0.3s ease, border-color 0.3s ease;
+  text-align: center;
 }
 
 .testimonial-card:hover {
   transform: translateY(-4px);
   border-color: rgba(110, 199, 75, 0.4);
+}
+
+.testimonial-image {
+  margin-bottom: 1.5rem;
+}
+
+.testimonial-image img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent-color);
+  display: inline-block;
 }
 
 .testimonial-header {
@@ -726,6 +740,7 @@ nav {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 2rem;
   margin-bottom: 2rem;
+  text-align: center;
 }
 
 .footer-section {
@@ -765,44 +780,36 @@ nav {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  align-items: center;
 }
 
-.footer-links li a {
+.footer-links li {
   color: var(--secondary-neutral);
-  text-decoration: none;
   font-size: 0.9rem;
-  transition: color 0.2s ease;
-}
-
-.footer-links li a:hover {
-  color: var(--accent-color);
 }
 
 .footer-socials {
   display: flex;
   gap: 1.25rem;
   margin-top: auto;
+  justify-content: center;
 }
 
 .social-link {
   color: var(--secondary-neutral);
-  text-decoration: none;
   font-size: 0.9rem;
   transition: color 0.2s ease;
-}
-
-.social-link:hover {
-  color: var(--accent-color);
 }
 
 .footer-bottom {
   border-top: 1px solid rgba(255, 255, 255, 0.04);
   padding-top: 1.5rem;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
   gap: 1rem;
+  text-align: center;
 }
 
 .footer-bottom p {
@@ -815,19 +822,12 @@ nav {
   display: flex;
   gap: 1rem;
   font-size: 0.85rem;
-}
-
-.footer-legal a {
-  color: var(--secondary-neutral);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.footer-legal a:hover {
-  color: var(--accent-color);
+  justify-content: center;
 }
 
 .footer-legal span {
+  color: var(--secondary-neutral);
+}
   color: rgba(255, 255, 255, 0.2);
 }
 
