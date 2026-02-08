@@ -138,6 +138,8 @@ nav {
   padding: 0.5rem;
 }
 
+.hamburger { z-index: 60; }
+
 .hamburger span {
   width: 24px;
   height: 2px;
@@ -173,6 +175,8 @@ nav {
 .nav-mobile-menu.active {
   display: flex;
 }
+
+.nav-mobile-menu { z-index: 55; }
 
 .nav-mobile-menu a {
   color: var(--neutral-color);
