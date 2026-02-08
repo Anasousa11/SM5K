@@ -49,6 +49,35 @@
                     <a href="{% url 'account_signup' %}">Register</a>
                 {% endif %}
             </div>
+
+            <!-- MOBILE HAMBURGER -->
+            <button class="hamburger" id="navHamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
+        <!-- MOBILE MENU -->
+        <div class="nav-mobile-menu" id="navMobileMenu">
+            <a href="{% url 'membership_plans' %}">Memberships</a>
+            <a href="{% url 'events' %}">Events</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'exercise_plan' %}">Exercise Plan</a>
+            {% endif %}
+            {% if user.is_authenticated %}
+                {% if user.is_staff or user.trainer_profile %}
+                    <a href="{% url 'trainer_dashboard' %}">Trainer Dashboard</a>
+                {% elif user.client_profile %}
+                    <a href="{% url 'client_dashboard' %}">Client Dashboard</a>
+                {% else %}
+                    <a href="{% url 'dashboard' %}">Dashboard</a>
+                {% endif %}
+                <a href="{% url 'account_logout' %}">Logout</a>
+            {% else %}
+                <a href="{% url 'account_login' %}">Login</a>
+                <a href="{% url 'account_signup' %}">Register</a>
+            {% endif %}
         </div>
     </nav>
 
