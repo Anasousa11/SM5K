@@ -47,12 +47,14 @@
         <article class="event-card">
           <!-- EVENT IMAGE -->
           <div class="event-image">
-            {% if event.get_event_type_display == "Running club" %}
-              <img src="{% static 'img/running_club.png' %}" alt="{{ event.title }}">
-            {% elif event.get_event_type_display == "Challenge" %}
-              <img src="{% static 'img/burpees.png' %}" alt="{{ event.title }}">
+            {% if event.event_type == "running_club" %}
+              <img src="{% static 'img/running.jpg' %}" alt="{{ event.title }}">
+            {% elif event.event_type == "challenge" %}
+              <img src="{% static 'img/burp.jpg' %}" alt="{{ event.title }}">
+            {% elif event.event_type == "class" %}
+              <img src="{% static 'img/push.jpg' %}" alt="{{ event.title }}">
             {% else %}
-              <img src="{% static 'img/yoga.png' %}" alt="{{ event.title }}">
+              <img src="{% static 'img/running.jpg' %}" alt="{{ event.title }}">
             {% endif %}
             <div class="event-type-badge">{{ event.get_event_type_display }}</div>
           </div>
