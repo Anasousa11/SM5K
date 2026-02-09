@@ -3,116 +3,139 @@
 {% block title %}Sessions & Runs | SinMancha{% endblock %}
 
 {% block content %}
-<section class="page-header">
-  <h1>Sessions & Runs</h1>
-  <p>Find your next run, session or challenge.</p>
+<section class="events-header">
+  <div class="container">
+    <h1>Events & Challenges</h1>
+    <p>Join runs, sessions, and challenges that push your limits.</p>
+  </div>
 </section>
 
-<section class="container" style="padding-top: 0; padding-bottom: 1rem;">
-  <form method="get" class="filters-form" style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:flex-end;">
-    <div>
-      <label style="font-size:0.85rem;">Type</label><br>
+<!-- FILTERS -->
+<section class="container events-filters-section">
+  <form method="get" class="events-filters">
+    <div class="filter-group">
+      <label>Event Type</label>
       <select name="type">
-        <option value="">All</option>
-        <option value="running_club" {% if type_filter == "running_club" %}selected{% endif %}>Running club</option>
-        <option value="class" {% if type_filter == "class" %}selected{% endif %}>Class / session</option>
+        <option value="">All Events</option>
+        <option value="running_club" {% if type_filter == "running_club" %}selected{% endif %}>Running Club</option>
+        <option value="class" {% if type_filter == "class" %}selected{% endif %}>Class / Session</option>
         <option value="challenge" {% if type_filter == "challenge" %}selected{% endif %}>Challenge</option>
       </select>
     </div>
 
-    <div>
-      <label style="font-size:0.85rem;">Min distance (km)</label><br>
-      <input type="number" step="0.1" name="min_distance" value="{{ min_distance|default:'' }}">
+    <div class="filter-group">
+      <label>Distance (km)</label>
+      <div class="filter-range">
+        <input type="number" step="0.1" name="min_distance" placeholder="Min" value="{{ min_distance|default:'' }}">
+        <span>—</span>
+        <input type="number" step="0.1" name="max_distance" placeholder="Max" value="{{ max_distance|default:'' }}">
+      </div>
     </div>
 
-    <div>
-      <label style="font-size:0.85rem;">Max distance (km)</label><br>
-      <input type="number" step="0.1" name="max_distance" value="{{ max_distance|default:'' }}">
-    </div>
-
-    <div>
-      <button type="submit" class="btn btn-secondary">Apply filters</button>
-      <a href="{% url 'events' %}" class="btn btn-outline-secondary">Reset</a>
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-primary">Filter</button>
+      <a href="{% url 'events' %}" class="btn btn-secondary">Reset</a>
     </div>
   </form>
 </section>
 
-<section class="container pb-4">
+<!-- EVENTS GRID -->
+<section class="container events-grid-section">
   {% if events %}
-    <div class="row g-4">
+    <div class="events-grid">
       {% for event in events %}
-        <div class="col-md-6 col-lg-4">
-          <div class="card h-100 shadow-sm">
-            <div class="card-body d-flex flex-column">
+        <article class="event-card">
+          <!-- EVENT IMAGE -->
+          <div class="event-image">
+            {% if event.get_event_type_display == "Running club" %}
+              <img src="{% static 'img/running_club.png' %}" alt="{{ event.title }}">
+            {% elif event.get_event_type_display == "Challenge" %}
+              <img src="{% static 'img/burpees.png' %}" alt="{{ event.title }}">
+            {% else %}
+              <img src="{% static 'img/yoga.png' %}" alt="{{ event.title }}">
+            {% endif %}
+            <div class="event-type-badge">{{ event.get_event_type_display }}</div>
+          </div>
 
-              <div class="d-flex justify-content-between align-items-start gap-2">
-                <h5 class="card-title mb-1">{{ event.title }}</h5>
-                <span class="badge text-bg-dark">{{ event.get_event_type_display }}</span>
+          <!-- EVENT DETAILS -->
+          <div class="event-content">
+            <h3 class="event-title">{{ event.title }}</h3>
+
+            <div class="event-meta">
+              <div class="meta-item">
+                <span class="meta-label">Date & Time</span>
+                <span class="meta-value">{{ event.date|date:"M d, Y" }} • {{ event.start_time|time:"H:i" }}</span>
               </div>
-
-              <p class="card-text text-muted mb-2">
-                {{ event.date|date:"M d, Y" }} • {{ event.start_time|time:"H:i" }}
-                {% if event.location %}<br><small>{{ event.location }}</small>{% endif %}
-              </p>
-
-              {% if event.description %}
-                <p class="card-text">{{ event.description|truncatewords:22 }}</p>
+              {% if event.location %}
+                <div class="meta-item">
+                  <span class="meta-label">Location</span>
+                  <span class="meta-value">{{ event.location }}</span>
+                </div>
               {% endif %}
+              {% if event.distance_km %}
+                <div class="meta-item">
+                  <span class="meta-label">Distance</span>
+                  <span class="meta-value">{{ event.distance_km }} km</span>
+                </div>
+              {% endif %}
+              {% if event.target_reps %}
+                <div class="meta-item">
+                  <span class="meta-label">Target</span>
+                  <span class="meta-value">{{ event.target_reps }} reps</span>
+                </div>
+              {% endif %}
+            </div>
 
-              <div class="mt-2">
-                {% if event.distance_km %}
-                  <span class="badge text-bg-secondary">Distance: {{ event.distance_km }} km</span>
-                {% endif %}
-                {% if event.target_reps %}
-                  <span class="badge text-bg-secondary">Target: {{ event.target_reps }} reps</span>
-                {% endif %}
-              </div>
+            {% if event.description %}
+              <p class="event-description">{{ event.description|truncatewords:20 }}</p>
+            {% endif %}
 
-              <div class="mt-3">
+            <!-- AVAILABILITY & PRICE -->
+            <div class="event-footer">
+              <div class="event-availability">
                 {% if event.is_full %}
-                  <span class="badge text-bg-danger">Fully booked</span>
+                  <span class="availability-badge full">Fully Booked</span>
                 {% else %}
-                  <span class="badge text-bg-success">{{ event.spots_left }} spots left</span>
+                  <span class="availability-badge available">{{ event.spots_left }} spots</span>
                 {% endif %}
+              </div>
 
+              <div class="event-price">
                 {% if event.price_member or event.price_non_member %}
-                  <div class="small text-muted mt-2">
-                    {% if event.price_member %}Member: £{{ event.price_member }}{% endif %}
-                    {% if event.price_non_member %}{% if event.price_member %} • {% endif %}Non-member: £{{ event.price_non_member }}{% endif %}
-                  </div>
+                  {% if event.price_member %}<span>Member: £{{ event.price_member }}</span>{% endif %}
                 {% else %}
-                  <div class="small text-muted mt-2">Free</div>
+                  <span class="price-free">Free</span>
                 {% endif %}
               </div>
+            </div>
 
-              <div class="mt-auto pt-3 d-flex gap-2">
-                {# Optional: only show Details if you actually have event_detail route #}
-                {# <a class="btn btn-outline-secondary" href="{% url 'event_detail' event.id %}">Details</a> #}
-
-                {% if user.is_authenticated and user.client_profile %}
-                  {% if event.id in joined_ids %}
-                    <form method="post" action="{% url 'leave_event' event.id %}">
-                      {% csrf_token %}
-                      <button class="btn btn-secondary" type="submit">Joined ✓ (Leave)</button>
-                    </form>
-                  {% else %}
-                    <form method="post" action="{% url 'join_event' event.id %}">
-                      {% csrf_token %}
-                      <button class="btn btn-primary" type="submit" {% if event.is_full %}disabled{% endif %}>Join</button>
-                    </form>
-                  {% endif %}
+            <!-- ACTION BUTTON -->
+            <div class="event-action">
+              {% if user.is_authenticated and user.client_profile %}
+                {% if event.id in joined_ids %}
+                  <form method="post" action="{% url 'leave_event' event.id %}" style="width: 100%;">
+                    {% csrf_token %}
+                    <button class="btn btn-secondary" type="submit" style="width: 100%;">Joined ✓</button>
+                  </form>
                 {% else %}
-                  <a class="btn btn-primary" href="{% url 'account_login' %}">Login to join</a>
+                  <form method="post" action="{% url 'join_event' event.id %}" style="width: 100%;">
+                    {% csrf_token %}
+                    <button class="btn btn-primary" type="submit" style="width: 100%;" {% if event.is_full %}disabled{% endif %}>Join Event</button>
+                  </form>
                 {% endif %}
-              </div>
-
+              {% else %}
+                <a class="btn btn-primary" href="{% url 'account_login' %}" style="width: 100%; text-align: center;">Login to Join</a>
+              {% endif %}
             </div>
           </div>
-        </div>
+        </article>
       {% endfor %}
     </div>
   {% else %}
-    <p class="container">No upcoming events yet.</p>
+    <div class="empty-state">
+      <h2>No upcoming events</h2>
+      <p>Check back soon for new runs, sessions, and challenges!</p>
+    </div>
   {% endif %}
 </section>
 {% endblock %}

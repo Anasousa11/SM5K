@@ -1287,6 +1287,29 @@ nav {
     font-size: 1.6rem;
   }
 
+  .plans-grid.premium {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1.5rem 0;
+  }
+
+  .plan-featured {
+    transform: scale(1);
+    grid-column: auto;
+  }
+
+  .plan-card {
+    padding: 1.25rem;
+  }
+
+  .plan-name {
+    font-size: 1.2rem;
+  }
+
+  .plan-price {
+    font-size: 2rem;
+  }
+
   .footer-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
