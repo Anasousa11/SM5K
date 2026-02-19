@@ -48,18 +48,31 @@ if not DEBUG:
 # ==============================
 
 INSTALLED_APPS = [
+    # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
 
     # Your apps
     "club",
     "payments",
+
+    # Allauth
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
 ]
 
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+)
 
 # ==============================
 # MIDDLEWARE
