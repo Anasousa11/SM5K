@@ -183,5 +183,6 @@ LOGOUT_REDIRECT_URL = "home"
 # STRIPE
 # ==============================
 
-STRIPE_SECRET_KEY = os.environ.get("sk_test_51StmOT2czGwuaB6fVyvuz5laJ1Ne2w25crNPddCVVjjSrov7djwYwjlPKhgnIyfYZVypgFKzuPkgovf3TRgf3quN00frvpyltX", "")
-STRIPE_PUBLISHABLE_KEY = os.environ.get("pk_test_51StmOT2czGwuaB6fJpGLhHP93nz1N8O4KMzlDWjd9wECpo2zoga5mgWt9u5jUfFomNYbtSzYyFJ4kYuo3x8ZbK0W000A7XGx2q", "")
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
+STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
