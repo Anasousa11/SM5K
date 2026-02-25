@@ -123,6 +123,10 @@ class MembershipPlan(models.Model):
 
 
 class Membership(models.Model):
+    """
+    Represents a client's membership purchase.
+    Tracks start/end dates, status, and auto-renewal preferences.
+    """
     STATUS_CHOICES = [
         ("active", "Active"),
         ("expired", "Expired"),
@@ -175,6 +179,10 @@ class Membership(models.Model):
 
 
 class Event(models.Model):
+    """
+    Represents a fitness event hosted by a trainer.
+    Can be a running club, class, or challenge with capacity limits.
+    """
     trainer = models.ForeignKey(
         TrainerProfile,
         on_delete=models.CASCADE,
