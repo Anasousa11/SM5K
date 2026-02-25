@@ -250,23 +250,34 @@ class Event(models.Model):
 
     @property
     def is_past(self):
+        """Check if event date has passed."""
         today = timezone.now().date()
         return self.date < today
 
     @property
     def registrations_count(self):
+        """Count total booked registrations for this event."""
         return self.registrations.filter(status="booked").count()
 
     @property
     def spots_left(self):
+        """
+        Calculate remaining spots available.
+        Does not go below 0 even if registrations exceed capacity.
+        """
         return max(self.capacity - self.registrations_count, 0)
 
     @property
     def is_full(self):
+        """Check if event has reached capacity."""
         return self.spots_left <= 0
 
 
 class EventRegistration(models.Model):
+    """
+    Represents a client's registration for an event.
+    Tracks status (booked/cancelled) and attendance.
+    """
     STATUS_CHOICES = [
         ("booked", "Booked"),
         ("cancelled", "Cancelled"),
@@ -276,11 +287,11 @@ class EventRegistration(models.Model):
     event = models.ForeignKey("Event", on_delete=models.CASCADE, related_name="registrations")
 
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="booked")
-    attended = models.BooleanField(default=False)  # <-- FIX: default so NOT NULL is satisfied
+    attended = models.BooleanField(default=False)
     booked_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("user", "event")
+        unique_together = ("user", "event")  # Prevent duplicate registrations
 
     def __str__(self):
         return f"{self.user} -> {self.event} ({self.status})"
