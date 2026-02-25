@@ -151,35 +151,6 @@
   </div>
 </section>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const slides = document.querySelectorAll('.carousel-slide');
-  const indicators = document.querySelectorAll('.carousel-indicators .indicator');
-  let currentSlide = 0;
-
-  function showSlide(n) {
-    slides.forEach(slide => slide.classList.remove('active'));
-    indicators.forEach(ind => ind.classList.remove('active'));
-    
-    slides[n].classList.add('active');
-    indicators[n].classList.add('active');
-  }
-
-  function nextSlide() {
-    currentSlide = (currentSlide + 1) % slides.length;
-    showSlide(currentSlide);
-  }
-
-  // Auto-rotate every 6 seconds
-  setInterval(nextSlide, 6000);
-
-  // Click handlers for indicators
-  indicators.forEach((indicator, index) => {
-    indicator.addEventListener('click', () => {
-      currentSlide = index;
-      showSlide(currentSlide);
-    });
-  });
-});
-</script>
+{% load static %}
+<script src="{% static 'js/carousel.js' %}"></script>
 {% endblock %}
