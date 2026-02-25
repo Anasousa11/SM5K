@@ -5,6 +5,10 @@ from django.utils import timezone
 
 
 class TrainerProfile(models.Model):
+    """
+    Extended profile for users with trainer role.
+    Stores trainer-specific information like specialties, bio, and social links.
+    """
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -21,10 +25,15 @@ class TrainerProfile(models.Model):
     website_url = models.URLField(blank=True)
 
     def __str__(self):
+        """Return trainer's display name or fallback to full name."""
         return self.display_name or self.user.get_full_name() or self.user.username
 
 
 class ClientProfile(models.Model):
+    """
+    Extended profile for users with client role.
+    Tracks client fitness level, emergency contact, and assigned trainer.
+    """
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -61,6 +70,10 @@ class ClientProfile(models.Model):
 
     @property
     def active_membership(self):
+        """
+        Get the currently active membership for this client.
+        Returns the most recent non-expired membership if available.
+        """
         today = timezone.now().date()
         return (Membership.objects
                 .filter(user=self.user, start_date__lte=today, end_date__gte=today)
@@ -70,10 +83,15 @@ class ClientProfile(models.Model):
 
     @property
     def has_active_membership(self):
+        """Check if client currently has an active membership."""
         return self.active_membership is not None
 
 
 class MembershipPlan(models.Model):
+    """
+    Defines a membership tier offered by a trainer.
+    Includes pricing, billing interval, and activation status.
+    """
     trainer = models.ForeignKey(
         TrainerProfile,
         on_delete=models.CASCADE,
@@ -137,6 +155,11 @@ class Membership(models.Model):
         return f"{self.user} - {self.plan.name} ({self.status})"
 
     def save(self, *args, **kwargs):
+        """
+        Auto-calculate end_date based on billing_interval.
+        Monthly: 30 days from start_date
+        Yearly: 365 days from start_date
+        """
         if not self.end_date and self.plan:
             if self.plan.billing_interval == 'monthly':
                 self.end_date = self.start_date + timedelta(days=30)
@@ -146,6 +169,7 @@ class Membership(models.Model):
 
     @property
     def is_active(self):
+        """Check if membership is currently active (status and date-based)."""
         today = timezone.now().date()
         return self.status == "active" and self.end_date and self.end_date >= today
 
