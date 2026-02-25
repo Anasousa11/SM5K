@@ -115,13 +115,25 @@ WSGI_APPLICATION = "sinmancha.wsgi.application"
 # DATABASE
 # ==============================
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-        ssl_require=not DEBUG,
-    )
-}
+# Configure DATABASES using dj_database_url. When no DATABASE_URL is provided
+# we fall back to a local sqlite file. Only enable ssl_require when a Postgres
+# URL is explicitly supplied to avoid injecting SSL params into sqlite settings.
+database_url = os.environ.get("DATABASE_URL", "")
+if database_url and database_url.startswith("postgres"):
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=database_url,
+            conn_max_age=600,
+            ssl_require=not DEBUG,
+        )
+    }
+else:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+            conn_max_age=600,
+        )
+    }
 
 
 # ==============================

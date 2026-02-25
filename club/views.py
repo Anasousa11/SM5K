@@ -135,6 +135,7 @@ class EventDetailView(LoginRequiredMixin, DetailView):
     model = Event
     template_name = "event_detail.html"
     context_object_name = "event"
+    # Use 'event_id' url kwarg as the DetailView primary key lookup
     pk_url_kwarg = "event_id"
 
     def get_context_data(self, **kwargs):
