@@ -369,54 +369,13 @@
 }
 </style>
 
+{% load static %}
 <script>
-document.getElementById('metricsForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  
-  const weight = document.getElementById('weight').value;
-  const height = document.getElementById('height').value;
-  const goal = document.getElementById('goal').value;
-  
-  // Show loading state
-  document.getElementById('resultsSection').style.display = 'none';
-  document.getElementById('errorState').style.display = 'none';
-  document.getElementById('loadingState').style.display = 'flex';
-  
-  try {
-    const response = await fetch('{% url "api_exercise_recommendations" %}', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-      },
-      body: JSON.stringify({
-        weight_kg: parseFloat(weight),
-        height_cm: parseFloat(height),
-        goal: goal,
-      })
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      displayPlan(result.data);
-    } else {
-      showError(result.error);
-    }
-  } catch (error) {
-    showError('Failed to generate plan. Please try again.');
-    console.error(error);
-  } finally {
-    document.getElementById('loadingState').style.display = 'none';
-  }
-});
-
-function displayPlan(data) {
-  const bmiValue = document.getElementById('bmiValue');
-  const bmiCategory = document.getElementById('bmiCategory');
-  const planResults = document.getElementById('planResults');
-  
-  // Display BMI
+  // Set API URL for exercise-plan.js to use
+  window.exercisePlanApiUrl = '{% url "api_exercise_recommendations" %}';
+</script>
+<script src="{% static 'js/exercise-plan.js' %}"></script>
+{% endblock %}  // Display BMI
   bmiValue.textContent = data.bmi;
   bmiCategory.textContent = data.category;
   
@@ -487,5 +446,10 @@ function showError(message) {
   document.getElementById('errorMessage').textContent = message;
   document.getElementById('errorState').style.display = 'block';
 }
+=======
+  // Set API URL for exercise-plan.js to use
+  window.exercisePlanApiUrl = '{% url "api_exercise_recommendations" %}';
+>>>>>>> fe4a0c9 (adjust code to link API)
 </script>
+<script src="{% static 'js/exercise-plan.js' %}"></script>
 {% endblock %}
