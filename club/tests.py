@@ -199,6 +199,44 @@ class MembershipTestCase(TestCase):
         
         expected_end = today + timedelta(days=30)
         self.assertEqual(membership.end_date, expected_end)
+
+
+# additional view/auth tests
+
+class ViewAndAuthTests(TestCase):
+    """Tests for view behavior and authentication settings"""
+
+    def setUp(self):
+        # use a client for requests
+        self.client = Client()
+
+    def test_membership_plans_with_missing_profile(self):
+        """Membership plans page should load even if profile has been deleted"""
+        user = User.objects.create_user(
+            username='noprof',
+            password='testpass123'
+        )
+        # remove the automatically created client profile
+        user.client_profile.delete()
+        self.client.login(username='noprof', password='testpass123')
+        response = self.client.get(reverse('membership_plans'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_login_using_email(self):
+        """With ACCOUNT_AUTHENTICATION_METHOD=username_email, users can login with email"""
+        user = User.objects.create_user(
+            username='useremail',
+            email='user@example.com',
+            password='pass12345'
+        )
+        # the site login view is allauth's account_login
+        response = self.client.post(reverse('account_login'), {
+            'login': 'user@example.com',
+            'password': 'pass12345'
+        })
+        # should redirect on success
+        self.assertIn(response.status_code, (302, 303))
+        self.assertEqual(membership.end_date, expected_end)
     
     def test_membership_auto_sets_end_date_yearly(self):
         """Test Membership auto-calculates end_date for yearly plan"""
