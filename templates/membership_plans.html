@@ -55,10 +55,10 @@
 
             <!-- Action button -->
             <div class="plan-action">
-              {% if user.is_authenticated and user.client_profile %}
+              {% if user.is_authenticated and profile %}
                 {% if active_membership and active_membership.plan_id == plan.id %}
                   <button class="btn btn-secondary" disabled>Current plan</button>
-                {% elif user.client_profile.has_active_membership %}
+                {% elif profile.has_active_membership %}
                   <button class="btn btn-outline-secondary" disabled>Upgrade required</button>
                 {% else %}
                   <form action="{% url 'create_checkout' plan.id %}" method="post">

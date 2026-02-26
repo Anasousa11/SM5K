@@ -46,9 +46,19 @@ class MembershipPlansView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        profile = None
+        if self.request.user.is_authenticated:
+            try:
+                profile = self.request.user.client_profile
+            except ClientProfile.DoesNotExist:
+                profile = None
+
         active_membership = None
-        if self.request.user.is_authenticated and hasattr(self.request.user, "client_profile"):
-            active_membership = self.request.user.client_profile.active_membership
+        if profile:
+            active_membership = profile.active_membership
+
+        context["profile"] = profile
         context["active_membership"] = active_membership
         return context
 
