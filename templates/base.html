@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     {% load static %}
     {% load club_extras %}
@@ -96,14 +96,13 @@
 
         {% block content %}{% endblock %}
     </div>
-</body>
 
-<footer class="footer">
+    <footer class="footer">
   <div class="container">
     <div class="footer-grid">
       <!-- Brand & About -->
       <div class="footer-section">
-        <h4>SinMancha</h4>
+        <h3>SinMancha</h3>
         <p>A community of runners committed to training hard and achieving greatness together.</p>
         <div class="footer-socials">
           <a class="social-link" href="#">Instagram</a>
@@ -114,7 +113,7 @@
 
       <!-- Quick Links -->
       <div class="footer-section">
-        <h4>Quick Links</h4>
+        <h3>Quick Links</h3>
         <ul class="footer-links">
           <li><a href="{% url 'home' %}">Home</a></li>
           <li><a href="{% url 'membership_plans' %}">Memberships</a></li>
@@ -125,7 +124,7 @@
 
       <!-- Resources -->
       <div class="footer-section">
-        <h4>Resources</h4>
+        <h3>Resources</h3>
         <ul class="footer-links">
           <li>Training Tips</li>
           <li>Nutrition Guide</li>
@@ -136,7 +135,7 @@
 
       <!-- Contact -->
       <div class="footer-section">
-        <h4>Get in Touch</h4>
+        <h3>Get in Touch</h3>
         <p><strong>Email:</strong> info@sinmancha.com</p>
         <p><strong>Phone:</strong> +1 (234) 567-890</p>
         <p><strong>Hours:</strong> Mon-Fri 8am-6pm</p>
@@ -154,8 +153,8 @@
       </div>
     </div>
   </div>
-</footer>
+    </footer>
 
-{% load static %}
-<script src="{% static 'js/mobile-menu.js' %}"></script>
-</html>
+    {% load static %}
+    <script src="{% static 'js/mobile-menu.js' %}"></script>
+</body>

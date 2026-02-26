@@ -61,7 +61,7 @@
                 {% elif profile.has_active_membership %}
                   <button class="btn btn-outline-secondary" disabled>Upgrade required</button>
                 {% else %}
-                  <form action="{% url 'create_checkout' plan.id %}" method="post">
+                  <form action="{% url 'payments:create_checkout' plan.id %}" method="post">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-primary">Subscribe now</button>
                   </form>
