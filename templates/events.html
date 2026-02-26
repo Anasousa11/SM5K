@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load club_extras %}
 
 {% block title %}Sessions & Runs | SinMancha{% endblock %}
 
@@ -113,7 +114,7 @@
 
             <!-- ACTION BUTTON -->
             <div class="event-action">
-              {% if user.is_authenticated and user.client_profile %}
+              {% if user.is_authenticated and user|has_attr:'client_profile' %}
                 {% if event.id in joined_ids %}
                   <form method="post" action="{% url 'leave_event' event.id %}" style="width: 100%;">
                     {% csrf_token %}

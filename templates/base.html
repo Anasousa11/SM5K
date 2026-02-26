@@ -2,6 +2,7 @@
 <html>
 <head>
     {% load static %}
+    {% load club_extras %}
     <title>{% block title %}SinMancha{% endblock %}</title>
     <meta name="theme-color" content="#0F1A25">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -37,7 +38,7 @@
                 {% if user.is_authenticated %}
                     {% if user.is_staff or user.trainer_profile %}
                         <a href="{% url 'trainer_dashboard' %}">Trainer Dashboard</a>
-                    {% elif user.client_profile %}
+                    {% elif user|has_attr:'client_profile' %}
                         <a href="{% url 'client_dashboard' %}">Client Dashboard</a>
                     {% else %}
                         <a href="{% url 'dashboard' %}">Dashboard</a>
@@ -69,7 +70,7 @@
             {% if user.is_authenticated %}
                 {% if user.is_staff or user.trainer_profile %}
                     <a href="{% url 'trainer_dashboard' %}">Trainer Dashboard</a>
-                {% elif user.client_profile %}
+                {% elif user|has_attr:'client_profile' %}
                     <a href="{% url 'client_dashboard' %}">Client Dashboard</a>
                 {% else %}
                     <a href="{% url 'dashboard' %}">Dashboard</a>
