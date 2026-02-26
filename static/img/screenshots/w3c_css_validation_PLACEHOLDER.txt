@@ -1,0 +1,7 @@
+This is a placeholder for the W3C CSS validation screenshot you provided.
+
+Please save the actual screenshot image file here with the exact filename:
+
+  static/img/screenshots/w3c_css_validation.png
+
+(You can upload/commit the PNG exported from your screenshot tool.)
