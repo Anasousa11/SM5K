@@ -98,6 +98,15 @@ class EventsView(ListView):
     context_object_name = "events"
 
     def dispatch(self, request, *args, **kwargs):
+        # catch any unexpected errors and print traceback so Heroku logs show it
+        try:
+            return super().dispatch(request, *args, **kwargs)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            raise
+
+    def dispatch(self, request, *args, **kwargs):
         try:
             return super().dispatch(request, *args, **kwargs)
         except Exception:
