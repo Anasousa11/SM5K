@@ -47,8 +47,8 @@ def create_checkout_session(request, plan_id):
     amount_cents = int(plan.price * 100)
 
     # Build success/cancel URLs for Stripe Checkout (append session id on success)
-    success_url = request.build_absolute_uri(reverse("payment_success")) + "?session_id={CHECKOUT_SESSION_ID}"
-    cancel_url = request.build_absolute_uri(reverse("payment_cancel"))
+    success_url = request.build_absolute_uri(reverse("payments:payment_success")) + "?session_id={CHECKOUT_SESSION_ID}"
+    cancel_url = request.build_absolute_uri(reverse("payments:payment_cancel"))
 
     # Build product_data safely
     product_data = {"name": f"{plan.name} ({plan.billing_interval})"}
