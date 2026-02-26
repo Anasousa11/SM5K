@@ -295,6 +295,11 @@ class EventViewTests(TestCase):
         finally:
             EventsView.get_queryset = original
 
+    def test_events_template_parses(self):
+        # ensure static tags in events.html don't cause syntax errors
+        response = self.client.get(reverse('events'), HTTP_HOST='localhost')
+        self.assertEqual(response.status_code, 200)
+
     def test_events_dispatch_exception_redirects(self):
         # monkeypatch dispatch to throw
         from club.views import EventsView
