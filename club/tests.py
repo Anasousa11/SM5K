@@ -236,6 +236,12 @@ class ViewAndAuthTests(TestCase):
         })
         # should redirect on success
         self.assertIn(response.status_code, (302, 303))
+
+    def test_login_page_uses_custom_template(self):
+        """GET /accounts/login/ should render our customized login template"""
+        response = self.client.get(reverse('account_login'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<h2>Login</h2>')
         self.assertEqual(membership.end_date, expected_end)
     
     def test_membership_auto_sets_end_date_yearly(self):
