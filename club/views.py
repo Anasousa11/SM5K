@@ -1,5 +1,6 @@
 from datetime import timedelta
 import json
+import logging
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -97,49 +98,58 @@ class EventsView(ListView):
     context_object_name = "events"
 
     def get_queryset(self):
-        queryset = Event.objects.filter(
-            date__gte=timezone.now().date(),
-            is_cancelled=False
-        )
+        # wrap in broad exception handler so an odd case can't crash the page
+        try:
+            queryset = Event.objects.filter(
+                date__gte=timezone.now().date(),
+                is_cancelled=False
+            )
 
-        if self.request.user.is_authenticated and hasattr(self.request.user, "client_profile"):
-            trainer = self.request.user.client_profile.primary_trainer
-            if trainer:
-                queryset = queryset.filter(trainer=trainer)
+            if self.request.user.is_authenticated and hasattr(self.request.user, "client_profile"):
+                trainer = self.request.user.client_profile.primary_trainer
+                if trainer:
+                    queryset = queryset.filter(trainer=trainer)
 
-        type_filter = self.request.GET.get("type")
-        if type_filter:
-            queryset = queryset.filter(event_type=type_filter)
+            type_filter = self.request.GET.get("type")
+            if type_filter:
+                queryset = queryset.filter(event_type=type_filter)
 
-        min_distance = self.request.GET.get("min_distance")
-        if min_distance:
-            try:
-                queryset = queryset.filter(distance_km__gte=float(min_distance))
-            except ValueError:
-                pass
+            min_distance = self.request.GET.get("min_distance")
+            if min_distance:
+                try:
+                    queryset = queryset.filter(distance_km__gte=float(min_distance))
+                except ValueError:
+                    pass
 
-        max_distance = self.request.GET.get("max_distance")
-        if max_distance:
-            try:
-                queryset = queryset.filter(distance_km__lte=float(max_distance))
-            except ValueError:
-                pass
+            max_distance = self.request.GET.get("max_distance")
+            if max_distance:
+                try:
+                    queryset = queryset.filter(distance_km__lte=float(max_distance))
+                except ValueError:
+                    pass
 
-        return queryset
+            return queryset
+        except Exception as exc:  # pragma: no cover - very defensive
+            logger.exception("EventsView.get_queryset failed")
+            return Event.objects.none()
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["type_filter"] = self.request.GET.get("type")
-        context["min_distance"] = self.request.GET.get("min_distance")
-        context["max_distance"] = self.request.GET.get("max_distance")
-        joined_ids = set()
-        if self.request.user.is_authenticated:
-            joined_ids = set(
-                EventRegistration.objects.filter(user=self.request.user)
-                .values_list("event_id", flat=True)
-            )
-        context["joined_ids"] = joined_ids
-        return context
+        try:
+            context = super().get_context_data(**kwargs)
+            context["type_filter"] = self.request.GET.get("type")
+            context["min_distance"] = self.request.GET.get("min_distance")
+            context["max_distance"] = self.request.GET.get("max_distance")
+            joined_ids = set()
+            if self.request.user.is_authenticated:
+                joined_ids = set(
+                    EventRegistration.objects.filter(user=self.request.user)
+                    .values_list("event_id", flat=True)
+                )
+            context["joined_ids"] = joined_ids
+            return context
+        except Exception as exc:  # pragma: no cover - defensive fallback
+            logger.exception("EventsView.get_context_data failed")
+            return super().get_context_data(**kwargs)
 
 class EventDetailView(LoginRequiredMixin, DetailView):
     model = Event

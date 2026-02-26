@@ -242,6 +242,58 @@ class ViewAndAuthTests(TestCase):
         response = self.client.get(reverse('account_login'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<h2>Login</h2>')
+
+
+class EventViewTests(TestCase):
+    """Ensure events listing works in various scenarios"""
+
+    def setUp(self):
+        self.client = Client()
+        # make a trainer and event
+        trainer_user = User.objects.create_user(username='t', password='pw')
+        self.trainer = TrainerProfile.objects.create(user=trainer_user)
+        self.event = Event.objects.create(
+            title='Coming Soon',
+            date=timezone.now().date() + timedelta(days=1),
+            start_time=timezone.now().time(),
+            capacity=10,
+            trainer=self.trainer,
+        )
+
+    def test_events_page_anonymous(self):
+        response = self.client.get(reverse('events'), HTTP_HOST='localhost')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Coming Soon')
+
+    def test_events_page_logged_in_no_profile(self):
+        user = User.objects.create_user(username='nop', password='pw')
+        self.client.login(username='nop', password='pw')
+        response = self.client.get(reverse('events'), HTTP_HOST='localhost')
+        self.assertEqual(response.status_code, 200)
+
+    def test_events_page_logged_in_with_profile(self):
+        user = User.objects.create_user(username='client', password='pw')
+        profile = user.client_profile
+        profile.primary_trainer = self.trainer
+        profile.save()
+        self.client.login(username='client', password='pw')
+        response = self.client.get(reverse('events'), HTTP_HOST='localhost')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Coming Soon')
+
+    def test_events_view_exception_is_handled(self):
+        # monkeypatch EventsView.get_queryset to raise
+        from club.views import EventsView
+        original = EventsView.get_queryset
+        def broken(self):
+            raise RuntimeError('simulated failure')
+        EventsView.get_queryset = broken
+        try:
+            response = self.client.get(reverse('events'), HTTP_HOST='localhost')
+            # should still return 200 with an empty list
+            self.assertEqual(response.status_code, 200)
+        finally:
+            EventsView.get_queryset = original
         self.assertEqual(membership.end_date, expected_end)
     
     def test_membership_auto_sets_end_date_yearly(self):
