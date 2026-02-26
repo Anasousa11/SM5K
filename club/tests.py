@@ -219,7 +219,7 @@ class ViewAndAuthTests(TestCase):
         # remove the automatically created client profile
         user.client_profile.delete()
         self.client.login(username='noprof', password='testpass123')
-        response = self.client.get(reverse('membership_plans'))
+        response = self.client.get(reverse('membership_plans'), secure=True)
         self.assertEqual(response.status_code, 200)
 
     def test_login_using_email(self):
