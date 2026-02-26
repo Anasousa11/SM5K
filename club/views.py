@@ -97,6 +97,15 @@ class EventsView(ListView):
     template_name = "events.html"
     context_object_name = "events"
 
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            return super().dispatch(request, *args, **kwargs)
+        except Exception:
+            # catch anything that slips through get_queryset/context
+            logger.exception("Unhandled exception in EventsView.dispatch")
+            messages.error(request, "Sorry, something went wrong loading events.")
+            return redirect("home")
+
     def get_queryset(self):
         # wrap in broad exception handler so an odd case can't crash the page
         try:

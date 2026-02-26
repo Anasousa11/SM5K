@@ -294,6 +294,21 @@ class EventViewTests(TestCase):
             self.assertEqual(response.status_code, 200)
         finally:
             EventsView.get_queryset = original
+
+    def test_events_dispatch_exception_redirects(self):
+        # monkeypatch dispatch to throw
+        from club.views import EventsView
+        original = EventsView.dispatch
+        def broken(self, request, *args, **kwargs):
+            raise RuntimeError('boom')
+        EventsView.dispatch = broken
+        try:
+            response = self.client.get(reverse('events'), HTTP_HOST='localhost', follow=True)
+            # should redirect to home with a message
+            self.assertRedirects(response, reverse('home'))
+            self.assertContains(response, 'Sorry, something went wrong')
+        finally:
+            EventsView.dispatch = original
         self.assertEqual(membership.end_date, expected_end)
     
     def test_membership_auto_sets_end_date_yearly(self):
