@@ -233,13 +233,13 @@ class ViewAndAuthTests(TestCase):
         response = self.client.post(reverse('account_login'), {
             'login': 'user@example.com',
             'password': 'pass12345'
-        })
+        }, secure=True)
         # should redirect on success
         self.assertIn(response.status_code, (302, 303))
 
     def test_login_page_uses_custom_template(self):
         """GET /accounts/login/ should render our customized login template"""
-        response = self.client.get(reverse('account_login'))
+        response = self.client.get(reverse('account_login'), secure=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<h2>Login</h2>')
 
