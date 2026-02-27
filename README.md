@@ -1,12 +1,12 @@
-﻿# SinMancha Running Club - Personal Trainer Platform
-
-
+﻿# # SinMancha Running Club - Personal Trainer Platform
 
 ## 📋 Description
 
 I built SinMancha to manage personal training businesses. The app helps trainers manage clients, memberships and events, and lets clients register and buy memberships. I developed this project (Ana Sousa) and it was inspired by my partner, Paul Ola.
 
 **Project Theme:** "SinMancha" means "unspotted" or "without stains" in Spanish—symbolizing redemption and the power to transform your life, no matter where you've come from.
+
+---
 
 ## ✨ Features
 
@@ -32,50 +32,221 @@ I built SinMancha to manage personal training businesses. The app helps trainers
 - Tiered membership plan cards
 - Testimonials and community sections
 - Modern CSS with flexbox and media queries
-
+
+---
 
 ## 🖼 Wireframes & Screenshots
 
-All images are stored in: `static/img/screenshots/`
+All images are stored in:
+
+`static/img/screenshots/`
 
 ### Core Pages (UI Evidence)
 
-![Homepage](static/img/screenshots/homepage.png)
-![Membership Plans](static/img/screenshots/membership-plan.png)
-![Membership (Unsubscribed)](static/img/screenshots/membership-unsubscribed.png)
-![Events Page](static/img/screenshots/events.png)
-![Client Dashboard](static/img/screenshots/client-dashboard.png)
-![Exercise Plan](static/img/screenshots/exercise-plan.png)
-![Payment Successful](static/img/screenshots/payment-successful.png)
-![Stripe Checkout](static/img/screenshots/stripe-payment.png)
-![Login Success](static/img/screenshots/success-login.jpg)
+- Homepage  
+  ![Homepage](static/img/screenshots/homepage.png)
+
+- Membership Plans  
+  ![Membership Plans](static/img/screenshots/membership-plan.png)
+
+- Membership (Unsubscribed)  
+  ![Membership Unsubscribed](static/img/screenshots/membership-unsubscribed.png)
+
+- Events Page  
+  ![Events](static/img/screenshots/events.png)
+
+- Client Dashboard  
+  ![Client Dashboard](static/img/screenshots/client-dashboard.png)
+
+- Exercise Plan  
+  ![Exercise Plan](static/img/screenshots/exercise-plan.png)
+
+- Payment Successful  
+  ![Payment Successful](static/img/screenshots/payment-successful.png)
+
+- Stripe Checkout  
+  ![Stripe Checkout](static/img/screenshots/stripe-payment.png)
+
+- Login Success  
+  ![Login Success](static/img/screenshots/success-login.png)
 
 ### Validation & Performance Evidence
 
-![W3C HTML Validator](static/img/screenshots/html-validator.jpg)
-![W3C CSS Validator](static/img/screenshots/css-validator.png)
-![Lighthouse Report](static/img/screenshots/lighthouse.png)
+- W3C HTML Validator  
+  ![W3C HTML Validator](static/img/screenshots/html-validator.png)
+
+- W3C CSS Validator  
+  ![W3C CSS Validator](static/img/screenshots/css-validator.png)
+
+- Lighthouse Report  
+  ![Lighthouse](static/img/screenshots/lighthouse.png)
 
 ### Wireframes
+- Wireframe  
+  ![Wireframe](static/img/screenshots/wireframe.png)
 
-![Wireframe](static/img/screenshots/wireframe.jpg)
+---
+
+## 🌍 Live Deployment
+
+The project is deployed using Heroku.
+
+**Live URL:**  
+https://sm5k-7156833a6677.herokuapp.com/
+
+**Admin panel:**  
+https://sm5k-7156833a6677.herokuapp.com/admin/
+
+---
+
+## 🧠 User Stories (Agile Planning)
+
+### As a Trainer
+- I want to create membership plans so I can offer structured pricing tiers.
+- I want to host events so I can manage running clubs and classes.
+- I want to view client registrations so I can monitor attendance.
+- I want to see active memberships so I can track engagement.
+
+### As a Client
+- I want to register an account so I can access members-only features.
+- I want to purchase a membership so I can join events.
+- I want to join events so I can participate in training sessions.
+- I want to generate a personalised exercise plan so I can improve safely.
+- I want to view my dashboard so I can track my progress.
+
+### As an Admin
+- I want to manage users and roles to maintain system integrity.
+- I want to monitor payments to verify transactions.
+- I want to oversee memberships and events across the platform.
+
+---
+
+## 🗄 Database Design & ERD
+
+The application uses a relational database structure built with Django ORM.
+
+### Core Models
+- `TrainerProfile` (One-to-One with User)
+- `ClientProfile` (One-to-One with User)
+- `MembershipPlan` (ForeignKey to TrainerProfile)
+- `Membership` (ForeignKey to ClientProfile and MembershipPlan)
+- `Event` (ForeignKey to TrainerProfile)
+- `EventRegistration` (ForeignKey to Event and ClientProfile)
+- `Payment` (linked to Membership and User)
+
+### Key Relationships
+- A `User` can have either a `TrainerProfile` or `ClientProfile`.
+- A `Trainer` can create multiple `MembershipPlans`.
+- A `Client` can purchase multiple `Memberships (only one active at a time)`.
+- A `Trainer` can host multiple `Events`.
+- Clients register for events via `EventRegistration`.
+- Payments support membership activation and tracking.
+
+Add your ERD image here once created:
+
+![ERD](static/img/screenshots/erd.png)
+
+---
+
+## 🔄 CRUD Functionality Overview
+
+### Trainers
+- Create membership plans and events
+- View client memberships and registrations
+- Update event details and plans
+- Delete events or deactivate plans
+
+### Clients
+- Register account and create profile
+- Join and leave events
+- View membership and exercise plan
+- Update profile information
+
+### Admin
+- Full CRUD access through Django Admin dashboard
+
+---
+
+## 🧪 Testing Strategy
+
+### Automated Testing
+Tests were executed using:
+
+`python manage.py test`
+
+### Manual Testing
+Manual testing included:
+- Authentication (register/login/logout)
+- Membership purchase via Stripe test mode
+- Event joining/leaving and capacity rules
+- Exercise plan generation across BMI ranges
+- Role-based dashboard access
+- Responsive display checks on mobile/tablet/desktop
+
+### Validation Tools
+- W3C HTML Validator
+- W3C CSS Validator
+- Lighthouse (Accessibility + Best Practices + Performance)
+
+Screenshots for evidence are included above.
+
+---
+
+## 📈 Challenges & Problem Solving
+
+During development I worked through:
+- Fixing 500 errors caused by OneToOne relationship checks in templates
+- Managing Stripe keys securely after GitHub push protection flagged exposed secrets
+- Debugging differences between local development and Heroku deployment
+- Resolving URL/view mismatches during refactoring
+- Ensuring the UI changes correctly based on active membership status
+
+These challenges strengthened my understanding of:
+- Django permissions and role-based access
+- Secure environment variable workflows
+- Deployment debugging and logs
+- Git version control and secret scanning
+
+---
+
+## 🔮 Future Improvements
+
+If given more time, I would add:
+- Membership cancellation and downgrade handling
+- Payment history page for clients
+- Trainer UI for editing events and plans (without admin)
+- Automated email confirmations
+- More analytics inside dashboards
+- Additional Lighthouse optimisation and accessibility improvements
+- Docker container support for easier deployment
+
+---
+
+## 🪞 Reflection
+
+This project helped me build confidence in designing, building, testing, and deploying a full-stack Django app.
+
+The hardest part was integrating Stripe payments securely while also ensuring the deployed version worked exactly the same as local development. Debugging production issues forced me to learn how to read logs properly, trace template errors, and manage environment variables correctly.
+
+Overall, SinMancha demonstrates my ability to:
+- Design a relational database structure
+- Build a multi-role secure Django system
+- Integrate payments
+- Create responsive UI
+- Deploy and document a complete project
+
+---
 
 ## 🛠 Tech Stack
 
 - **Backend:** Django 6.0.1, Python 3.14+
 - **Database:** SQLite (development) / PostgreSQL (production recommended)
 - **Authentication:** django-allauth 0.50.0
-- **Payments:** Stripe API (test and live modes)
+- **Payments:** Stripe API (test mode)
 - **Frontend:** HTML5, CSS3, Vanilla JavaScript
 - **Image Processing:** Pillow
 - **Environment Config:** python-dotenv
 
-## 📦 Prerequisites
-
-- Python 3.10+
-- pip or conda
-- Virtual environment (recommended)
-- Stripe account (test mode keys for development)
 
 ## 🚀 Local Development Setup
 
