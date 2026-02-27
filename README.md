@@ -37,53 +37,50 @@ I built SinMancha to manage personal training businesses. The app helps trainers
 
 ## 🖼 Wireframes & Screenshots
 
-All images are stored in:
-
-`static/img/screenshots/`
 
 ### Core Pages (UI Evidence)
 
 - Homepage  
-  ![Homepage](static/img/screenshots/homepage.png)
+  ![Homepage](static/screenshots/homepage.png)
 
 - Membership Plans  
-  ![Membership Plans](static/img/screenshots/membership-plan.png)
+  ![Membership Plans](static/screenshots/membership-plan.png)
 
 - Membership (Unsubscribed)  
-  ![Membership Unsubscribed](static/img/screenshots/membership-unsubscribed.png)
+  ![Membership Unsubscribed](static/screenshots/membership-unsubscribed.png)
 
 - Events Page  
-  ![Events](static/img/screenshots/events.png)
+  ![Events](static/screenshots/events.png)
 
 - Client Dashboard  
-  ![Client Dashboard](static/img/screenshots/client-dashboard.png)
+  ![Client Dashboard](static/screenshots/client-dashboard.png)
 
 - Exercise Plan  
-  ![Exercise Plan](static/img/screenshots/exercise-plan.png)
+  ![Exercise Plan](static/screenshots/exercise-plan.png)
 
 - Payment Successful  
-  ![Payment Successful](static/img/screenshots/payment-successful.png)
+  ![Payment Successful](static/screenshots/payment-successful.png)
 
 - Stripe Checkout  
-  ![Stripe Checkout](static/img/screenshots/stripe-payment.png)
+  ![Stripe Checkout](static/screenshots/stripe-payment.png)
 
 - Login Success  
-  ![Login Success](static/img/screenshots/success-login.png)
+  ![Login Success](static/screenshots/success-login.png)
 
 ### Validation & Performance Evidence
 
 - W3C HTML Validator  
-  ![W3C HTML Validator](static/img/screenshots/html-validator.png)
+  ![W3C HTML Validator](static/screenshots/html-validator.png)
 
 - W3C CSS Validator  
-  ![W3C CSS Validator](static/img/screenshots/css-validator.png)
+  ![W3C CSS Validator](static/screenshots/css-validator.png)
 
 - Lighthouse Report  
-  ![Lighthouse](static/img/screenshots/lighthouse.png)
+  ![Lighthouse](static/screenshots/lighthouse.png)
 
 ### Wireframes
 - Wireframe  
-  ![Wireframe](static/img/screenshots/wireframe.png)
+  ![Wireframe](static/screenshots/wireframe.png)
 
 ---
 
@@ -144,7 +141,7 @@ The application uses a relational database structure built with Django ORM.
 
 Add your ERD image here once created:
 
-![ERD](static/img/screenshots/erd.png)
+![ERD](static/screenshots/erd.png)
 
 ---
 
@@ -608,7 +605,8 @@ Why I like Elastic Beanstalk: it gives me a managed server and is simpler than c
 - Make sure HTTPS is enabled for your domain
 
 ---
-
+
+
 
 #### Run specific app tests
 ```bash
@@ -777,4 +775,5 @@ This project is part of a course assignment. All rights reserved.
 ## Author
 
 Ana Sousa
+
 
