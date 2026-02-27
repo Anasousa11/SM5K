@@ -55,17 +55,21 @@
 
             <!-- Action button -->
             <div class="plan-action">
-              {% if user.is_authenticated and profile %}
+              {% if user.is_authenticated %}
+                
                 {% if active_membership and active_membership.plan_id == plan.id %}
                   <button class="btn btn-secondary" disabled>Current plan</button>
-                {% elif profile.has_active_membership %}
+
+                {% elif profile and profile.has_active_membership %}
                   <button class="btn btn-outline-secondary" disabled>Upgrade required</button>
+
                 {% else %}
                   <form action="{% url 'payments:create_checkout' plan.id %}" method="post">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-primary">Subscribe now</button>
                   </form>
                 {% endif %}
+
               {% else %}
                 <a href="{% url 'account_signup' %}" class="btn btn-primary">Get started</a>
               {% endif %}
