@@ -68,7 +68,7 @@
                 <a href="{% url 'exercise_plan' %}">Exercise Plan</a>
             {% endif %}
             {% if user.is_authenticated %}
-                {% if user.is_staff or user.trainer_profile %}
+                {% if user.is_staff or user|has_attr:'trainer_profile' %}
                     <a href="{% url 'trainer_dashboard' %}">Trainer Dashboard</a>
                 {% elif user|has_attr:'client_profile' %}
                     <a href="{% url 'client_dashboard' %}">Client Dashboard</a>

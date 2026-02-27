@@ -1,11 +1,9 @@
 # club/urls.py
-
 from django.urls import path
 from . import views
 
 urlpatterns = [
     path("", views.HomeView.as_view(), name="home"),
-
     path("register/", views.register, name="register"),
 
     path("membership-plans/", views.MembershipPlansView.as_view(), name="membership_plans"),
@@ -22,7 +20,6 @@ urlpatterns = [
     path("admin-dashboard/", views.admin_dashboard, name="admin_dashboard"),
 
     path("my-events/", views.my_events, name="my_events"),
-
     path("exercise-plan/", views.exercise_plan_page, name="exercise_plan"),
     path("api/exercise-recommendations/", views.get_exercise_recommendations, name="api_exercise_recommendations"),
 ]
