@@ -1,20 +1,21 @@
+# club/views.py
+
 from datetime import timedelta
 import json
 import logging
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.views.generic import DetailView, ListView, TemplateView
 from django.views.decorators.http import require_http_methods
+from django.views.generic import DetailView, ListView, TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
+from .exercise_recommendations import generate_exercise_plan
 from .models import (
     ClientProfile,
     Event,
@@ -23,7 +24,9 @@ from .models import (
     MembershipPlan,
     TrainerProfile,
 )
-from .exercise_recommendations import generate_exercise_plan
+
+logger = logging.getLogger(__name__)
+
 
 # -------------------------
 # BASIC PAGES
@@ -49,15 +52,15 @@ class MembershipPlansView(ListView):
         context = super().get_context_data(**kwargs)
 
         profile = None
-        if self.request.user.is_authenticated:
-            try:
-                profile = self.request.user.client_profile
-            except ClientProfile.DoesNotExist:
-                profile = None
-
         active_membership = None
+
+        if self.request.user.is_authenticated:
+            # Safer than try/except: one-to-one reverse relation may not exist
+            profile = getattr(self.request.user, "client_profile", None)
+
         if profile:
-            active_membership = profile.active_membership
+            # assumes your ClientProfile has `active_membership` property
+            active_membership = getattr(profile, "active_membership", None)
 
         context["profile"] = profile
         context["active_membership"] = active_membership
@@ -68,13 +71,12 @@ class MembershipPlansView(ListView):
 def activate_membership(request, plan_id):
     plan = get_object_or_404(MembershipPlan, id=plan_id, is_active=True)
 
-    if not hasattr(request.user, "client_profile"):
+    profile = getattr(request.user, "client_profile", None)
+    if not profile:
         messages.error(request, "You need a client profile to activate a membership.")
         return redirect("membership_plans")
 
-    profile = request.user.client_profile
-
-    if profile.has_active_membership:
+    if getattr(profile, "has_active_membership", False):
         messages.error(request, "You already have an active membership.")
         return redirect("membership_plans")
 
@@ -98,35 +100,31 @@ class EventsView(ListView):
     context_object_name = "events"
 
     def dispatch(self, request, *args, **kwargs):
-        # catch any unexpected errors and print traceback so Heroku logs show it
+        """
+        Catch unexpected errors so Heroku logs show something useful,
+        and users get a friendly message instead of a blank 500 page.
+        """
         try:
             return super().dispatch(request, *args, **kwargs)
         except Exception:
-            import traceback
-            traceback.print_exc()
-            raise
-
-    def dispatch(self, request, *args, **kwargs):
-        try:
-            return super().dispatch(request, *args, **kwargs)
-        except Exception:
-            # catch anything that slips through get_queryset/context
             logger.exception("Unhandled exception in EventsView.dispatch")
             messages.error(request, "Sorry, something went wrong loading events.")
             return redirect("home")
 
     def get_queryset(self):
-        # wrap in broad exception handler so an odd case can't crash the page
         try:
             queryset = Event.objects.filter(
                 date__gte=timezone.now().date(),
-                is_cancelled=False
+                is_cancelled=False,
             )
 
-            if self.request.user.is_authenticated and hasattr(self.request.user, "client_profile"):
-                trainer = self.request.user.client_profile.primary_trainer
-                if trainer:
-                    queryset = queryset.filter(trainer=trainer)
+            if request_user := getattr(self, "request", None):
+                if request_user.user.is_authenticated:
+                    profile = getattr(request_user.user, "client_profile", None)
+                    if profile:
+                        trainer = getattr(profile, "primary_trainer", None)
+                        if trainer:
+                            queryset = queryset.filter(trainer=trainer)
 
             type_filter = self.request.GET.get("type")
             if type_filter:
@@ -147,7 +145,7 @@ class EventsView(ListView):
                     pass
 
             return queryset
-        except Exception as exc:  # pragma: no cover - very defensive
+        except Exception:
             logger.exception("EventsView.get_queryset failed")
             return Event.objects.none()
 
@@ -157,6 +155,7 @@ class EventsView(ListView):
             context["type_filter"] = self.request.GET.get("type")
             context["min_distance"] = self.request.GET.get("min_distance")
             context["max_distance"] = self.request.GET.get("max_distance")
+
             joined_ids = set()
             if self.request.user.is_authenticated:
                 joined_ids = set(
@@ -165,22 +164,22 @@ class EventsView(ListView):
                 )
             context["joined_ids"] = joined_ids
             return context
-        except Exception as exc:  # pragma: no cover - defensive fallback
+        except Exception:
             logger.exception("EventsView.get_context_data failed")
             return super().get_context_data(**kwargs)
+
 
 class EventDetailView(LoginRequiredMixin, DetailView):
     model = Event
     template_name = "event_detail.html"
     context_object_name = "event"
-    # Use 'event_id' url kwarg as the DetailView primary key lookup
     pk_url_kwarg = "event_id"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         registration = EventRegistration.objects.filter(
             user=self.request.user,
-            event=self.object
+            event=self.object,
         ).first()
         context["registration"] = registration
         return context
@@ -191,17 +190,18 @@ def join_event(request, event_id):
     if request.method != "POST":
         return redirect("events")
 
-    if not hasattr(request.user, "client_profile"):
+    profile = getattr(request.user, "client_profile", None)
+    if not profile:
         messages.error(request, "Only clients can join events.")
         return redirect("events")
 
-    if not request.user.client_profile.has_active_membership:
+    if not getattr(profile, "has_active_membership", False):
         messages.error(request, "You need an active membership to join events.")
         return redirect("events")
 
     event = get_object_or_404(Event, id=event_id)
 
-    if event.is_full or event.is_past:
+    if getattr(event, "is_full", False) or getattr(event, "is_past", False):
         messages.error(request, "You cannot join this event.")
         return redirect("events")
 
@@ -215,11 +215,7 @@ def leave_event(request, event_id):
     if request.method != "POST":
         return redirect("events")
 
-    EventRegistration.objects.filter(
-        user=request.user,
-        event_id=event_id
-    ).delete()
-
+    EventRegistration.objects.filter(user=request.user, event_id=event_id).delete()
     messages.success(request, "You’ve left this event.")
     return redirect("events")
 
@@ -229,7 +225,6 @@ def leave_event(request, event_id):
 # -------------------------
 
 def register(request):
-    # Redirect to allauth signup
     return redirect("account_signup")
 
 
@@ -237,18 +232,17 @@ def register(request):
 def dashboard(request):
     if request.user.is_staff or hasattr(request.user, "trainer_profile"):
         return redirect("trainer_dashboard")
-    elif hasattr(request.user, "client_profile"):
+    if hasattr(request.user, "client_profile"):
         return redirect("client_dashboard")
     return redirect("home")
 
 
 @login_required
 def client_dashboard(request):
-    if not hasattr(request.user, "client_profile"):
+    profile = getattr(request.user, "client_profile", None)
+    if not profile:
         messages.error(request, "You need a client profile.")
         return redirect("home")
-
-    profile = request.user.client_profile
 
     events = Event.objects.filter(
         trainer=profile.primary_trainer,
@@ -264,7 +258,7 @@ def client_dashboard(request):
         request,
         "client/dashboard.html",
         {
-            "membership": profile.active_membership,
+            "membership": getattr(profile, "active_membership", None),
             "upcoming_events": events[:5],
             "my_registrations": registrations,
         },
@@ -321,7 +315,7 @@ def admin_dashboard(request):
             ).count(),
             "upcoming_events": Event.objects.filter(
                 date__gte=timezone.now().date(),
-                is_cancelled=False
+                is_cancelled=False,
             ).count(),
         },
     )
@@ -334,74 +328,30 @@ def admin_dashboard(request):
 @require_http_methods(["POST"])
 @login_required
 def get_exercise_recommendations(request):
-    """
-    API endpoint to generate personalized exercise plans based on user metrics.
-    
-    Expected POST data:
-    {
-        "weight_kg": float,
-        "height_cm": float,
-        "goal": string (optional, defaults to "general_fitness")
-    }
-    
-    Returns:
-    {
-        "success": bool,
-        "data": {
-            "weight_kg": float,
-            "height_cm": float,
-            "bmi": float,
-            "category": string,
-            "plan": {
-                "category": string,
-                "focus": string,
-                "weekly_plan": list of exercises
-            }
-        }
-    }
-    """
     try:
         data = json.loads(request.body)
         weight_kg = float(data.get("weight_kg"))
         height_cm = float(data.get("height_cm"))
         goal = data.get("goal", "general_fitness")
-        
+
         if weight_kg <= 0 or height_cm <= 0:
-            return JsonResponse({
-                "success": False,
-                "error": "Weight and height must be positive numbers"
-            }, status=400)
-        
+            return JsonResponse(
+                {"success": False, "error": "Weight and height must be positive numbers"},
+                status=400,
+            )
+
         plan = generate_exercise_plan(weight_kg, height_cm, goal)
-        
-        return JsonResponse({
-            "success": True,
-            "data": plan
-        })
-    
+
+        return JsonResponse({"success": True, "data": plan})
+
     except (ValueError, KeyError, json.JSONDecodeError) as e:
-        return JsonResponse({
-            "success": False,
-            "error": f"Invalid request data: {str(e)}"
-        }, status=400)
+        return JsonResponse({"success": False, "error": f"Invalid request data: {str(e)}"}, status=400)
     except Exception as e:
-        return JsonResponse({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }, status=500)
+        logger.exception("Exercise recommendations failed")
+        return JsonResponse({"success": False, "error": f"Server error: {str(e)}"}, status=500)
 
 
 @login_required
 def exercise_plan_page(request):
-    """
-    Page for clients to generate and view their personalized exercise plans.
-    """
     user_has_profile = hasattr(request.user, "client_profile")
-    
-    return render(
-        request,
-        "exercise_plan.html",
-        {
-            "user_has_profile": user_has_profile,
-        }
-    )
+    return render(request, "exercise_plan.html", {"user_has_profile": user_has_profile})

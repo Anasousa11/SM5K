@@ -1,20 +1,28 @@
+# payments/views.py
+
+from decimal import Decimal, ROUND_HALF_UP
 import stripe
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 
 from club.models import MembershipPlan, Membership
 from .models import Payment
 
 
-stripe.api_key = getattr(settings, "STRIPE_SECRET_KEY", "")
+def _to_cents(amount) -> int:
+    """
+    Convert Decimal/float/string pounds to integer pennies (or cents).
+    """
+    dec = Decimal(str(amount)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return int(dec * 100)
 
 
 @login_required
@@ -23,42 +31,39 @@ def create_checkout_session(request, plan_id):
     """
     Create a Stripe Checkout Session for purchasing a membership plan.
     """
-    if not stripe.api_key:
+    if not getattr(settings, "STRIPE_SECRET_KEY", None):
         messages.error(request, "Stripe is not configured (missing STRIPE_SECRET_KEY).")
         return redirect("membership_plans")
 
-    # Must be a client
-    if not hasattr(request.user, "client_profile"):
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+
+    profile = getattr(request.user, "client_profile", None)
+    if not profile:
         messages.error(request, "You need a client account to buy a membership.")
         return redirect("membership_plans")
 
-    profile = request.user.client_profile
-
     plan = get_object_or_404(MembershipPlan, id=plan_id, is_active=True)
 
-    # If plan is tied to a trainer, enforce it
-    if plan.trainer and profile.primary_trainer and plan.trainer != profile.primary_trainer:
-        messages.error(request, "You can only buy plans from your trainer.")
-        return redirect("membership_plans")
+    # If you restrict buying to a user's trainer, keep this
+    if getattr(plan, "trainer", None) and getattr(profile, "primary_trainer", None):
+        if plan.trainer != profile.primary_trainer:
+            messages.error(request, "You can only buy plans from your trainer.")
+            return redirect("membership_plans")
 
-    # Prevent buying if already active
     if getattr(profile, "has_active_membership", False):
         messages.error(request, "You already have an active membership.")
         return redirect("membership_plans")
 
-    # Stripe expects the smallest currency unit.
-    # Your template shows £, but your Stripe code uses USD.
-    # Pick ONE. For now we keep USD like your existing code.
-    amount_cents = int(plan.price * 100)
+    amount_cents = _to_cents(plan.price)
 
     success_url = request.build_absolute_uri(
         reverse("payments:payment_success")
     ) + "?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = request.build_absolute_uri(reverse("payments:payment_cancel"))
 
-    product_data = {"name": f"{plan.name} ({plan.billing_interval})"}
-    if plan.description and plan.description.strip():
-        product_data["description"] = plan.description.strip()[:200]
+    product_data = {"name": f"{plan.name} ({getattr(plan, 'billing_interval', 'monthly')})"}
+    if getattr(plan, "description", "") and str(plan.description).strip():
+        product_data["description"] = str(plan.description).strip()[:200]
 
     try:
         session = stripe.checkout.Session.create(
@@ -67,7 +72,7 @@ def create_checkout_session(request, plan_id):
             line_items=[
                 {
                     "price_data": {
-                        "currency": "usd",
+                        "currency": "gbp",
                         "unit_amount": amount_cents,
                         "product_data": product_data,
                     },
@@ -98,6 +103,12 @@ def payment_success(request):
         messages.error(request, "Missing payment session.")
         return redirect("membership_plans")
 
+    if not getattr(settings, "STRIPE_SECRET_KEY", None):
+        messages.error(request, "Stripe is not configured.")
+        return redirect("membership_plans")
+
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+
     try:
         session = stripe.checkout.Session.retrieve(session_id)
     except Exception:
@@ -116,13 +127,8 @@ def payment_success(request):
     plan_id = session.metadata.get("plan_id")
     plan = get_object_or_404(MembershipPlan, id=plan_id)
 
-    # If membership already active, don't duplicate
-    if hasattr(request.user, "client_profile") and getattr(request.user.client_profile, "has_active_membership", False):
-        messages.success(request, "Payment received. Your membership is already active.")
-        return render(request, "payments/success.html", {"plan": plan})
-
-    # Create membership (adjust fields if your Membership model differs)
-    Membership.objects.get_or_create(
+    # Idempotent membership creation
+    membership, _created = Membership.objects.get_or_create(
         user=request.user,
         plan=plan,
         defaults={
@@ -130,13 +136,13 @@ def payment_success(request):
         },
     )
 
-    # Record payment
+    # Record payment (idempotent)
     Payment.objects.get_or_create(
         stripe_payment_intent_id=session.payment_intent,
         defaults={
             "user": request.user,
             "membership_plan": plan,
-            "amount_cents": int(plan.price * 100),
+            "amount_cents": _to_cents(plan.price),
             "status": "succeeded",
             "paid_at": timezone.now(),
         },
@@ -148,9 +154,6 @@ def payment_success(request):
 
 @login_required
 def payment_cancel(request):
-    """
-    Handle cancelled Stripe Checkout.
-    """
     messages.error(request, "Payment cancelled or unsuccessful.")
     return render(request, "payments/cancel.html")
 
@@ -159,19 +162,19 @@ def payment_cancel(request):
 @require_POST
 def webhook(request):
     """
-    Stripe webhook endpoint to handle async payment events.
+    Stripe webhook endpoint to handle asynchronous payment events.
 
-    Requires STRIPE_WEBHOOK_SECRET in environment variables.
+    Set STRIPE_WEBHOOK_SECRET in Heroku config vars.
     """
     webhook_secret = getattr(settings, "STRIPE_WEBHOOK_SECRET", "")
-
-    # If you haven't configured the webhook secret yet, return 200
-    # so Stripe doesn't retry forever while you're building.
     if not webhook_secret:
+        # Accept so Stripe doesn't keep retrying forever
         return JsonResponse({"warning": "Webhook secret not configured"}, status=200)
 
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE", "")
+
+    stripe.api_key = getattr(settings, "STRIPE_SECRET_KEY", "")
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
@@ -185,30 +188,23 @@ def webhook(request):
 
     if event_type == "payment_intent.succeeded":
         _handle_payment_succeeded(data_object)
+
     elif event_type == "payment_intent.payment_failed":
         _handle_payment_failed(data_object)
+
     elif event_type == "charge.refunded":
         _handle_charge_refunded(data_object)
 
-    return JsonResponse({"success": True}, status=200)
+    return JsonResponse({"success": True})
 
 
 def _handle_payment_succeeded(intent):
-    """
-    Process successful PaymentIntent:
-    - Mark Payment record as succeeded
-    - Activate Membership if not already active
-    """
-    intent_id = intent.get("id")
-    if not intent_id:
-        return
-
     try:
-        payment = Payment.objects.get(stripe_payment_intent_id=intent_id)
+        payment = Payment.objects.get(stripe_payment_intent_id=intent.get("id"))
     except Payment.DoesNotExist:
         return
 
-    # If your Payment model has helper methods, use them; otherwise update directly
+    # If your model doesn't have mark_succeeded, just set fields directly:
     if hasattr(payment, "mark_succeeded"):
         payment.mark_succeeded(charge_id=intent.get("latest_charge"))
     else:
@@ -228,15 +224,8 @@ def _handle_payment_succeeded(intent):
 
 
 def _handle_payment_failed(intent):
-    """
-    Process failed PaymentIntent: mark Payment record as failed.
-    """
-    intent_id = intent.get("id")
-    if not intent_id:
-        return
-
     try:
-        payment = Payment.objects.get(stripe_payment_intent_id=intent_id)
+        payment = Payment.objects.get(stripe_payment_intent_id=intent.get("id"))
     except Payment.DoesNotExist:
         return
 
@@ -248,9 +237,6 @@ def _handle_payment_failed(intent):
 
 
 def _handle_charge_refunded(charge):
-    """
-    Process refund: update Payment record status.
-    """
     charge_id = charge.get("id")
     if not charge_id:
         return
