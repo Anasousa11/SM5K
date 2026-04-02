@@ -9,10 +9,15 @@
   <div class="container">
     <h1>Events & Challenges</h1>
     <p>Join runs, sessions, and challenges that push your limits.</p>
+
+    {% if can_manage_events %}
+      <div style="margin-top: 1rem;">
+        <a href="{% url 'create_event' %}" class="btn btn-primary">Create Event</a>
+      </div>
+    {% endif %}
   </div>
 </section>
 
-<!-- FILTERS -->
 <section class="container events-filters-section">
   <form method="get" class="events-filters">
     <div class="filter-group">
@@ -41,13 +46,11 @@
   </form>
 </section>
 
-<!-- EVENTS GRID -->
 <section class="container events-grid-section">
   {% if events %}
     <div class="events-grid">
       {% for event in events %}
         <article class="event-card">
-          <!-- EVENT IMAGE -->
           <div class="event-image">
             {% if event.event_type == "running_club" %}
               <img src="{% static 'img/running.jpg' %}" alt="{{ event.title }}">
@@ -61,7 +64,6 @@
             <div class="event-type-badge">{{ event.get_event_type_display }}</div>
           </div>
 
-          <!-- EVENT DETAILS -->
           <div class="event-content">
             <h3 class="event-title">{{ event.title }}</h3>
 
@@ -70,18 +72,21 @@
                 <span class="meta-label">Date & Time</span>
                 <span class="meta-value">{{ event.date|date:"M d, Y" }} • {{ event.start_time|time:"H:i" }}</span>
               </div>
+
               {% if event.location %}
                 <div class="meta-item">
                   <span class="meta-label">Location</span>
                   <span class="meta-value">{{ event.location }}</span>
                 </div>
               {% endif %}
+
               {% if event.distance_km %}
                 <div class="meta-item">
                   <span class="meta-label">Distance</span>
                   <span class="meta-value">{{ event.distance_km }} km</span>
                 </div>
               {% endif %}
+
               {% if event.target_reps %}
                 <div class="meta-item">
                   <span class="meta-label">Target</span>
@@ -94,7 +99,6 @@
               <p class="event-description">{{ event.description|truncatewords:20 }}</p>
             {% endif %}
 
-            <!-- AVAILABILITY & PRICE -->
             <div class="event-footer">
               <div class="event-availability">
                 {% if event.is_full %}
@@ -113,9 +117,20 @@
               </div>
             </div>
 
-            <!-- ACTION BUTTON -->
-            <div class="event-action">
-              {% if user.is_authenticated and user|has_attr:'client_profile' %}
+            {% if can_manage_events and user.is_staff %}
+              <div class="event-action" style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                <a class="btn btn-secondary" href="{% url 'edit_event' event.id %}" style="flex: 1; text-align: center;">Edit</a>
+                <a class="btn btn-primary" href="{% url 'delete_event' event.id %}" style="flex: 1; text-align: center;">Delete</a>
+              </div>
+
+            {% elif can_manage_events and trainer_profile and event.trainer_id == trainer_profile.id %}
+              <div class="event-action" style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                <a class="btn btn-secondary" href="{% url 'edit_event' event.id %}" style="flex: 1; text-align: center;">Edit</a>
+                <a class="btn btn-primary" href="{% url 'delete_event' event.id %}" style="flex: 1; text-align: center;">Delete</a>
+              </div>
+
+            {% elif user.is_authenticated and user|has_attr:'client_profile' %}
+              <div class="event-action">
                 {% if event.id in joined_ids %}
                   <form method="post" action="{% url 'leave_event' event.id %}" style="width: 100%;">
                     {% csrf_token %}
@@ -127,10 +142,12 @@
                     <button class="btn btn-primary" type="submit" style="width: 100%;" {% if event.is_full %}disabled{% endif %}>Join Event</button>
                   </form>
                 {% endif %}
-              {% else %}
+              </div>
+            {% else %}
+              <div class="event-action">
                 <a class="btn btn-primary" href="{% url 'account_login' %}" style="width: 100%; text-align: center;">Login to Join</a>
-              {% endif %}
-            </div>
+              </div>
+            {% endif %}
           </div>
         </article>
       {% endfor %}
@@ -138,7 +155,13 @@
   {% else %}
     <div class="empty-state">
       <h2>No upcoming events</h2>
-      <p>Check back soon for new runs, sessions, and challenges!</p>
+      <p>Check back soon for new runs, sessions, and challenges.</p>
+
+      {% if can_manage_events %}
+        <div style="margin-top: 1rem;">
+          <a href="{% url 'create_event' %}" class="btn btn-primary">Create your first event</a>
+        </div>
+      {% endif %}
     </div>
   {% endif %}
 </section>
