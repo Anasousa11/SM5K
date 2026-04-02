@@ -10,7 +10,10 @@ urlpatterns = [
     path("activate-membership/<int:plan_id>/", views.activate_membership, name="activate_membership"),
 
     path("events/", views.EventsView.as_view(), name="events"),
+    path("events/create/", views.create_event, name="create_event"),
     path("events/<int:event_id>/", views.EventDetailView.as_view(), name="event_detail"),
+    path("events/<int:event_id>/edit/", views.edit_event, name="edit_event"),
+    path("events/<int:event_id>/delete/", views.delete_event, name="delete_event"),
     path("events/<int:event_id>/join/", views.join_event, name="join_event"),
     path("events/<int:event_id>/leave/", views.leave_event, name="leave_event"),
 
