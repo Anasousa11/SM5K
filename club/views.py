@@ -1,6 +1,5 @@
 # club/views.py
 
-from datetime import timedelta
 import json
 import logging
 
@@ -16,16 +15,20 @@ from django.views.generic import DetailView, ListView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .exercise_recommendations import generate_exercise_plan
+from .forms import EventForm
 from .models import (
     ClientProfile,
     Event,
     EventRegistration,
     Membership,
     MembershipPlan,
-    TrainerProfile,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def is_trainer(user):
+    return user.is_staff or getattr(user, "trainer_profile", None) is not None
 
 
 # -------------------------
@@ -55,11 +58,9 @@ class MembershipPlansView(ListView):
         active_membership = None
 
         if self.request.user.is_authenticated:
-            # Safer than try/except: one-to-one reverse relation may not exist
             profile = getattr(self.request.user, "client_profile", None)
 
         if profile:
-            # assumes your ClientProfile has `active_membership` property
             active_membership = getattr(profile, "active_membership", None)
 
         context["profile"] = profile
@@ -100,10 +101,6 @@ class EventsView(ListView):
     context_object_name = "events"
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Catch unexpected errors so Heroku logs show something useful,
-        and users get a friendly message instead of a blank 500 page.
-        """
         try:
             return super().dispatch(request, *args, **kwargs)
         except Exception:
@@ -116,15 +113,14 @@ class EventsView(ListView):
             queryset = Event.objects.filter(
                 date__gte=timezone.now().date(),
                 is_cancelled=False,
-            )
+            ).select_related("trainer", "trainer__user")
 
-            if request_user := getattr(self, "request", None):
-                if request_user.user.is_authenticated:
-                    profile = getattr(request_user.user, "client_profile", None)
-                    if profile:
-                        trainer = getattr(profile, "primary_trainer", None)
-                        if trainer:
-                            queryset = queryset.filter(trainer=trainer)
+            if self.request.user.is_authenticated:
+                profile = getattr(self.request.user, "client_profile", None)
+                if profile:
+                    trainer = getattr(profile, "primary_trainer", None)
+                    if trainer:
+                        queryset = queryset.filter(trainer=trainer)
 
             type_filter = self.request.GET.get("type")
             if type_filter:
@@ -157,12 +153,20 @@ class EventsView(ListView):
             context["max_distance"] = self.request.GET.get("max_distance")
 
             joined_ids = set()
+            trainer_profile = None
+
             if self.request.user.is_authenticated:
                 joined_ids = set(
-                    EventRegistration.objects.filter(user=self.request.user)
-                    .values_list("event_id", flat=True)
+                    EventRegistration.objects.filter(
+                        user=self.request.user,
+                        status="booked",
+                    ).values_list("event_id", flat=True)
                 )
+                trainer_profile = getattr(self.request.user, "trainer_profile", None)
+
             context["joined_ids"] = joined_ids
+            context["can_manage_events"] = is_trainer(self.request.user)
+            context["trainer_profile"] = trainer_profile
             return context
         except Exception:
             logger.exception("EventsView.get_context_data failed")
@@ -186,6 +190,99 @@ class EventDetailView(LoginRequiredMixin, DetailView):
 
 
 @login_required
+def create_event(request):
+    if not is_trainer(request.user):
+        messages.error(request, "Only trainers can create events.")
+        return redirect("events")
+
+    trainer_profile = getattr(request.user, "trainer_profile", None)
+
+    if not request.user.is_staff and not trainer_profile:
+        messages.error(request, "Trainer profile not found.")
+        return redirect("trainer_dashboard")
+
+    if request.method == "POST":
+        form = EventForm(request.POST)
+        if form.is_valid():
+            event = form.save(commit=False)
+            if trainer_profile:
+                event.trainer = trainer_profile
+            event.save()
+            messages.success(request, "Event created successfully.")
+            return redirect("trainer_dashboard")
+    else:
+        form = EventForm()
+
+    return render(
+        request,
+        "event_form.html",
+        {
+            "form": form,
+            "page_title": "Create Event",
+            "submit_text": "Create Event",
+        },
+    )
+
+
+@login_required
+def edit_event(request, event_id):
+    if not is_trainer(request.user):
+        messages.error(request, "Only trainers can edit events.")
+        return redirect("events")
+
+    trainer_profile = getattr(request.user, "trainer_profile", None)
+
+    if request.user.is_staff:
+        event = get_object_or_404(Event, id=event_id)
+    else:
+        event = get_object_or_404(Event, id=event_id, trainer=trainer_profile)
+
+    if request.method == "POST":
+        form = EventForm(request.POST, instance=event)
+        if form.is_valid():
+            updated_event = form.save(commit=False)
+            if trainer_profile:
+                updated_event.trainer = trainer_profile
+            updated_event.save()
+            messages.success(request, "Event updated successfully.")
+            return redirect("trainer_dashboard")
+    else:
+        form = EventForm(instance=event)
+
+    return render(
+        request,
+        "event_form.html",
+        {
+            "form": form,
+            "event": event,
+            "page_title": "Edit Event",
+            "submit_text": "Save Changes",
+        },
+    )
+
+
+@login_required
+def delete_event(request, event_id):
+    if not is_trainer(request.user):
+        messages.error(request, "Only trainers can delete events.")
+        return redirect("events")
+
+    trainer_profile = getattr(request.user, "trainer_profile", None)
+
+    if request.user.is_staff:
+        event = get_object_or_404(Event, id=event_id)
+    else:
+        event = get_object_or_404(Event, id=event_id, trainer=trainer_profile)
+
+    if request.method == "POST":
+        event.delete()
+        messages.success(request, "Event deleted successfully.")
+        return redirect("trainer_dashboard")
+
+    return render(request, "event_confirm_delete.html", {"event": event})
+
+
+@login_required
 def join_event(request, event_id):
     if request.method != "POST":
         return redirect("events")
@@ -205,7 +302,16 @@ def join_event(request, event_id):
         messages.error(request, "You cannot join this event.")
         return redirect("events")
 
-    EventRegistration.objects.get_or_create(user=request.user, event=event)
+    registration, created = EventRegistration.objects.get_or_create(
+        user=request.user,
+        event=event,
+        defaults={"status": "booked"},
+    )
+
+    if not created and registration.status == "cancelled":
+        registration.status = "booked"
+        registration.save()
+
     messages.success(request, "You’ve joined this event.")
     return redirect("events")
 
@@ -230,9 +336,9 @@ def register(request):
 
 @login_required
 def dashboard(request):
-    if request.user.is_staff or hasattr(request.user, "trainer_profile"):
+    if request.user.is_staff or getattr(request.user, "trainer_profile", None):
         return redirect("trainer_dashboard")
-    if hasattr(request.user, "client_profile"):
+    if getattr(request.user, "client_profile", None):
         return redirect("client_dashboard")
     return redirect("home")
 
@@ -277,17 +383,13 @@ def my_events(request):
 # TRAINER / ADMIN
 # -------------------------
 
-def is_trainer(user):
-    return user.is_staff or hasattr(user, "trainer_profile")
-
-
 @login_required
 @user_passes_test(is_trainer)
 def trainer_dashboard(request):
     trainer = getattr(request.user, "trainer_profile", None)
 
     clients = ClientProfile.objects.filter(primary_trainer=trainer)
-    events = Event.objects.filter(trainer=trainer)
+    events = Event.objects.filter(trainer=trainer).order_by("date", "start_time")
     memberships = Membership.objects.filter(plan__trainer=trainer)
 
     return render(
@@ -298,7 +400,7 @@ def trainer_dashboard(request):
             "event_count": events.count(),
             "active_memberships": memberships.filter(status="active").count(),
             "clients": clients[:10],
-            "events": events[:5],
+            "events": events,
         },
     )
 
@@ -345,13 +447,19 @@ def get_exercise_recommendations(request):
         return JsonResponse({"success": True, "data": plan})
 
     except (ValueError, KeyError, json.JSONDecodeError) as e:
-        return JsonResponse({"success": False, "error": f"Invalid request data: {str(e)}"}, status=400)
+        return JsonResponse(
+            {"success": False, "error": f"Invalid request data: {str(e)}"},
+            status=400,
+        )
     except Exception as e:
         logger.exception("Exercise recommendations failed")
-        return JsonResponse({"success": False, "error": f"Server error: {str(e)}"}, status=500)
+        return JsonResponse(
+            {"success": False, "error": f"Server error: {str(e)}"},
+            status=500,
+        )
 
 
 @login_required
 def exercise_plan_page(request):
-    user_has_profile = hasattr(request.user, "client_profile")
+    user_has_profile = getattr(request.user, "client_profile", None) is not None
     return render(request, "exercise_plan.html", {"user_has_profile": user_has_profile})
