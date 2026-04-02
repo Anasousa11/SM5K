@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Event | SinMancha{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <h1>Delete Event</h1>
+  <p>Please confirm if you want to remove this event.</p>
+</section>
+
+<section class="container" style="max-width: 760px; margin-bottom: 3rem;">
+  <div class="card" style="padding: 1.5rem;">
+    <h2 style="margin-bottom: 1rem;">{{ event.title }}</h2>
+    <p><strong>Date:</strong> {{ event.date }}</p>
+    <p><strong>Time:</strong> {{ event.start_time }}{% if event.end_time %} - {{ event.end_time }}{% endif %}</p>
+    {% if event.location %}
+      <p><strong>Location:</strong> {{ event.location }}</p>
+    {% endif %}
+
+    <form method="post" style="margin-top: 1.5rem;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary">Yes, delete event</button>
+      <a href="{% url 'trainer_dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</section>
+{% endblock %}
