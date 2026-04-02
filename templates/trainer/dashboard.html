@@ -6,6 +6,11 @@
 <section class="page-header">
   <h1>Trainer Dashboard</h1>
   <p>Overview of your clients, events and memberships.</p>
+
+  <div style="margin-top: 1rem;">
+    <a href="{% url 'create_event' %}" class="btn btn-primary">Create Event</a>
+    <a href="{% url 'events' %}" class="btn btn-secondary">View Public Events Page</a>
+  </div>
 </section>
 
 <section class="dashboard-grid">
@@ -19,7 +24,7 @@
   <div class="card">
     <h2>Recent clients</h2>
     {% if clients %}
-      <ul style="padding-left:1rem;">
+      <ul style="padding-left: 1rem;">
         {% for client in clients %}
           <li>{{ client.user.get_full_name|default:client.user.username }}</li>
         {% endfor %}
@@ -30,15 +35,23 @@
   </div>
 
   <div class="card">
-    <h2>Upcoming events</h2>
+    <h2>Manage events</h2>
     {% if events %}
-      <ul style="padding-left:1rem;">
+      <ul style="padding-left: 1rem;">
         {% for event in events %}
-          <li>{{ event.date }} – {{ event.title }}</li>
+          <li style="margin-bottom: 0.75rem;">
+            <strong>{{ event.date }}</strong> – {{ event.title }}
+            <div style="margin-top: 0.35rem;">
+              <a href="{% url 'edit_event' event.id %}">Edit</a>
+              <span> | </span>
+              <a href="{% url 'delete_event' event.id %}">Delete</a>
+            </div>
+          </li>
         {% endfor %}
       </ul>
     {% else %}
-      <p>No upcoming events.</p>
+      <p>No events yet.</p>
+      <a href="{% url 'create_event' %}" class="btn btn-primary">Create your first event</a>
     {% endif %}
   </div>
 </section>
