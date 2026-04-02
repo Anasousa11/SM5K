@@ -10,21 +10,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
-    <link rel="manifest" href="/static/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'site.webmanifest' %}">
 </head>
 <body>
     <nav class="{% if request.resolver_match and request.resolver_match.url_name == 'home' %}nav-transparent{% endif %}">
         <div class="container nav-inner">
-            <!-- LEFT: LOGO -->
             <a href="{% url 'home' %}" class="nav-logo">
                 <img src="{% static 'img/logo-sm.png' %}" alt="SinMancha Logo">
                 <span>SinMancha</span>
             </a>
 
-            <!-- CENTER: MAIN LINKS -->
             <div class="nav-links nav-links-main">
                 <a href="{% url 'membership_plans' %}">Memberships</a>
                 <a href="{% url 'events' %}">Events</a>
@@ -33,10 +31,9 @@
                 {% endif %}
             </div>
 
-            <!-- RIGHT: AUTH / DASHBOARD -->
             <div class="nav-links nav-links-auth">
                 {% if user.is_authenticated %}
-                    {% if user.is_staff or user.trainer_profile %}
+                    {% if user.is_staff or user|has_attr:'trainer_profile' %}
                         <a href="{% url 'trainer_dashboard' %}">Trainer Dashboard</a>
                     {% elif user|has_attr:'client_profile' %}
                         <a href="{% url 'client_dashboard' %}">Client Dashboard</a>
@@ -44,7 +41,6 @@
                         <a href="{% url 'dashboard' %}">Dashboard</a>
                     {% endif %}
 
-                    <!-- Logout via allauth -->
                     <a href="{% url 'account_logout' %}" class="logout-link">Logout</a>
                 {% else %}
                     <a href="{% url 'account_login' %}">Login</a>
@@ -52,7 +48,6 @@
                 {% endif %}
             </div>
 
-            <!-- MOBILE HAMBURGER -->
             <button class="hamburger" id="navHamburger">
                 <span></span>
                 <span></span>
@@ -60,7 +55,6 @@
             </button>
         </div>
 
-        <!-- MOBILE MENU -->
         <div class="nav-mobile-menu" id="navMobileMenu">
             <a href="{% url 'membership_plans' %}">Memberships</a>
             <a href="{% url 'events' %}">Events</a>
@@ -98,63 +92,59 @@
     </div>
 
     <footer class="footer">
-  <div class="container">
-    <div class="footer-grid">
-      <!-- Brand & About -->
-      <div class="footer-section">
-        <h3>SinMancha</h3>
-        <p>A community of runners committed to training hard and achieving greatness together.</p>
-        <div class="footer-socials">
-          <a class="social-link" href="#">Instagram</a>
-          <a class="social-link" href="#">Twitter</a>
-          <a class="social-link" href="#">Facebook</a>
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-section">
+            <h3>SinMancha</h3>
+            <p>A community of runners committed to training hard and achieving greatness together.</p>
+            <div class="footer-socials">
+              <a class="social-link" href="#">Instagram</a>
+              <a class="social-link" href="#">Twitter</a>
+              <a class="social-link" href="#">Facebook</a>
+            </div>
+          </div>
+
+          <div class="footer-section">
+            <h3>Quick Links</h3>
+            <ul class="footer-links">
+              <li><a href="{% url 'home' %}">Home</a></li>
+              <li><a href="{% url 'membership_plans' %}">Memberships</a></li>
+              <li><a href="{% url 'events' %}">Events</a></li>
+              <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-section">
+            <h3>Resources</h3>
+            <ul class="footer-links">
+              <li>Training Tips</li>
+              <li>Nutrition Guide</li>
+              <li>Blog</li>
+              <li>FAQ</li>
+            </ul>
+          </div>
+
+          <div class="footer-section">
+            <h3>Get in Touch</h3>
+            <p><strong>Email:</strong> info@sinmancha.com</p>
+            <p><strong>Phone:</strong> +1 (234) 567-890</p>
+            <p><strong>Hours:</strong> Mon-Fri 8am-6pm</p>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>&copy; {% now "Y" %} SinMancha Running Club. All rights reserved.</p>
+          <div class="footer-legal">
+            <a href="#">Privacy Policy</a>
+            <span>•</span>
+            <a href="#">Terms of Service</a>
+            <span>•</span>
+            <a href="#">Cookie Policy</a>
+          </div>
         </div>
       </div>
-
-      <!-- Quick Links -->
-      <div class="footer-section">
-        <h3>Quick Links</h3>
-        <ul class="footer-links">
-          <li><a href="{% url 'home' %}">Home</a></li>
-          <li><a href="{% url 'membership_plans' %}">Memberships</a></li>
-          <li><a href="{% url 'events' %}">Events</a></li>
-          <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
-        </ul>
-      </div>
-
-      <!-- Resources -->
-      <div class="footer-section">
-        <h3>Resources</h3>
-        <ul class="footer-links">
-          <li>Training Tips</li>
-          <li>Nutrition Guide</li>
-          <li>Blog</li>
-          <li>FAQ</li>
-        </ul>
-      </div>
-
-      <!-- Contact -->
-      <div class="footer-section">
-        <h3>Get in Touch</h3>
-        <p><strong>Email:</strong> info@sinmancha.com</p>
-        <p><strong>Phone:</strong> +1 (234) 567-890</p>
-        <p><strong>Hours:</strong> Mon-Fri 8am-6pm</p>
-      </div>
-    </div>
-
-      <div class="footer-bottom">
-      <p>&copy; {% now "Y" %} SinMancha Running Club. All rights reserved.</p>
-      <div class="footer-legal">
-        <a href="#">Privacy Policy</a>
-        <span>•</span>
-        <a href="#">Terms of Service</a>
-        <span>•</span>
-        <a href="#">Cookie Policy</a>
-      </div>
-    </div>
-  </div>
     </footer>
 
-    {% load static %}
     <script src="{% static 'js/mobile-menu.js' %}"></script>
 </body>
+</html>
