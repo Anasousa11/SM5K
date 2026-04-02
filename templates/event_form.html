@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | SinMancha{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <h1>{{ page_title }}</h1>
+  <p>Use the form below to manage your event.</p>
+</section>
+
+<section class="container" style="max-width: 760px; margin-bottom: 3rem;">
+  <div class="card" style="padding: 1.5rem;">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div style="margin-bottom: 1rem;">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        <div style="margin-bottom: 1rem;">
+          <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 0.35rem;">
+            {{ field.label }}
+          </label>
+          {{ field }}
+          {% if field.help_text %}
+            <small style="display: block; margin-top: 0.35rem;">{{ field.help_text }}</small>
+          {% endif %}
+          {% if field.errors %}
+            <div style="margin-top: 0.35rem;">
+              {{ field.errors }}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button type="submit" class="btn btn-primary">{{ submit_text }}</button>
+        <a href="{% url 'trainer_dashboard' %}" class="btn btn-secondary">Back to dashboard</a>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}
